@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="keywords" content="iconfont preview for web">
+  <meta name="description" content="JSON Remark Parse, Momo's Blog, LuckyMomo">
+  <title>JSON Remark Parse</title>
+  <style>
+  /*全局设置*/
+  body::-webkit-scrollbar { display: none}
+  p {
+    margin: 0;
+  }
+  [v-cloak] {
+    display: none;
+  }
+  #app {
+    text-align: center;
+    padding: 10px 50px 0;
+  }
+  .p-action {
+    margin: 20px auto;
+    max-width: 1100px;
+    width: 100%;
+    font-size: 35px;
+    text-align: center;
+    font-weight: bold;
+  }
+  .p-github, .p-other {
+    position: fixed;
+    right: 50px;
+    bottom: 70px;
+    background-color: #eff3f6;
+    background-image: linear-gradient(-180deg, #fafbfc, #eff3f6 90%);
+    color: #24292e;
+    border: 1px solid rgba(27, 31, 35, .2);
+    border-radius: 3px;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+    padding: 6px 12px;
+    z-index: 2;
+  }
+  .p-github:hover, .p-other:hover {
+    opacity: 0.9;
+  }
+  .p-other {
+    bottom: 30px;
+  }
+  /*字体文件载入*/
+  .p-input-container {
+    position: relative;
+    display: flex;
+    padding-top: 20px;
+  }
+  .p-input-container .line {
+    position: relative;
+    vertical-align: top;
+    width: 5px;
+    top: 100px;
+    height: calc(100vh - 400px);
+    transform-origin: top;
+    background-repeat: repeat;
+    background-image: url(http://www.luckly-mjw.cn/baseSource/icon-dotted-y.png);
+  }
+  .p-input-container .textarea-box, .result-box {
+    margin: 0 20px;
+    padding: 10px;
+    height: calc(100vh - 200px);
+    flex: 1;
+    position: relative;
+    display: flex;
+    white-space: pre;
+    text-align: left;
+    color: #333333;
+    vertical-align: text-top;
+    font-size: 14px;
+    overflow: auto;
+    border-radius: 4px;
+    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+  }
+  .textarea-box {
+    border: 1px solid #cccccc;
+    resize: none;
+  }
+  .result-box {
+    display: block;
+    border: 1px solid #bbbbbb;
+  }
+  i {
+    position: absolute;
+    top: 30px;
+    right: 50px;
+    display: inline;
+    padding: 4px 8px;
+    font-size: 14px;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid #aaaaaa;
+    background-color: #3D8AC7;
+    opacity: 0.7;
+    transition: 0.3s all;
+  }
+  i:hover, .active {
+    opacity: 1;
+  }
+  .without-value {
+    right: 110px;
+  }
+  </style>
+</head>
+<body>
+<section id="app">
+  <!--顶部操作提示-->
+  <section class="p-action g-box">{{ tips }}</section>
+  <a class="p-github" target="_blank" href="https://github.com/Momo707577045/iconFontPreview">github</a>
+  <a class="p-other" target="_blank" href="http://blog.luckly-mjw.cn/tool-show/index.html">其他实用工具</a>
+  <!--文件载入-->
+  <section class="p-input-container">
+    <textarea v-model="sourceStr" class="textarea-box" :placeholder="testStr"></textarea>
+    <div class="line"></div>
+    <pre class="result-box">{{ resultStr }}</pre>
+    <i class="without-value" :class="{active:withoutValue}" @click="withoutValue=!withoutValue">去值</i>
+    <i class="copy" @click="copy">复制</i>
+  </section>
+</section>
+</body>
+<script>
+var _hmt = _hmt || [];
+(function () {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?1f12b0865d866ae1b93514870d93ce89";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<!--vue 前端框架-->
+<script src="http://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>
+<script>
+
+new Vue({
+  el: '#app',
+
+  data() {
+    return {
+      tips: '带备注的 JSON 重排版工具，左源码，右结果',
+      timeouter: -1,
+      withoutValue: false, // 是否取值
+      sourceStr: '', // 源码字符串
+      resultStr: '', // 结果字符串
+      testStr: `
+       {
+          "code": 200,
+    "message": "操作成功",
+  "data": {
+        "page":{
+            "pageIndex": "1", // 第几页
+           "pageSize": "1", // 每页数据量
+            "itemSum": "1", // 项目总数
+            "pageSum": "1", // 总页数
+             },
+
+
+      "list|1-9":[{
+    "phoneNum": "", // 手机号
+            "jobNum": "@natural(100000,999999)", // 工号
+"identityCardUrl": "@image", // 身份证图片URL
+        "identityCard": "", // 身份证号
+        "userName":      "@cname", // 姓名
+        "sex|1": ["male","female"], // 性别
+        "birthday":"1994-02-02" // 生日
+    }],
+
+
+
+  }
+}`,
+    }
+  },
+
+  watch: {
+    sourceStr: function (newValue) {
+      this.resultStr = this.parseJSON(newValue)
+    },
+    withoutValue: function (newValue) {
+      this.resultStr = this.parseJSON(this.sourceStr)
+    }
+  },
+
+  mounted() {
+    this.resultStr = this.parseJSON(this.testStr)
+  },
+
+  methods: {
+    // 重排版 json
+    parseJSON(originStr) {
+      if (!originStr.trim()) {
+        originStr = this.testStr
+      }
+      try {
+        eval(`window._originStr = ${originStr}`)
+        let jsonStr = JSON.stringify(window._originStr, null, 4)
+        let remarkObj = [] // 备注信息
+        let originStrLine = originStr.split('\n') // 初始数据的每一行
+        let jsonStrLine = jsonStr.split('\n') // 解析后的数据
+
+        // 获取备注信息
+        originStrLine.forEach((line) => {
+          if (line.indexOf('//') > -1) {
+            let linePart = line.split('//')
+            remarkObj[line.split(':')[0].trim()] = ` //${linePart.pop()}`
+          }
+        })
+
+        // 给格式化后的数据添加备注
+        jsonStrLine = jsonStrLine.map((line) => {
+          if (this.withoutValue) {
+            line = line.replace(/: "[^"]+"/, ': ""')
+          }
+          Object.keys(remarkObj).some((remarkItem) => {
+            if (line.indexOf(remarkItem) > -1) {
+              let value = remarkObj[remarkItem]
+              delete remarkObj[remarkItem]
+              line += value
+              return true
+            }
+            return false
+          })
+          return line
+        })
+        return jsonStrLine.join('\n')
+      } catch (e) {
+        return e.toString()
+      }
+    },
+
+    // 拷贝结果
+    copy() {
+      clearTimeout(this.timeouter)
+      this.tips = `复制成功`
+      this.timeouter = setTimeout(() => {this.tips = `带备注的 JSON 重排版工具，左源码，右结果`}, 1000)
+      if (!document.queryCommandSupported('copy')) {
+        return false
+      }
+
+      let $input = document.createElement('textarea')
+      $input.style.opacity = '0'
+      $input.value = this.resultStr
+      document.body.appendChild($input)
+      $input.select()
+
+      const result = document.execCommand('copy')
+      document.body.removeChild($input)
+      $input = null
+    }
+  },
+})
+</script>
+</html>
