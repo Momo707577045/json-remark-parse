@@ -112,6 +112,9 @@
   .without-value {
     right: 110px;
   }
+  .indent {
+    right: 170px;
+  }
   </style>
 </head>
 <body>
@@ -124,7 +127,8 @@
   <section class="p-input-container">
     <textarea v-model="sourceStr" class="textarea-box" :placeholder="testStr"></textarea>
     <div class="line"></div>
-    <pre class="result-box">{{ resultStr }}</pre>
+    <textarea class="result-box" v-model="resultStr" readonly></textarea>
+    <i class="indent" :class="{active:indent}" @click="indent=!indent">2缩进</i>
     <i class="without-value" :class="{active:withoutValue}" @click="withoutValue=!withoutValue">去值</i>
     <i class="copy" @click="copy">复制</i>
   </section>
@@ -148,6 +152,7 @@ new Vue({
 
   data() {
     return {
+      indent: false, // 是否2缩进
       tips: '带备注的 JSON 重排版工具，左源码，右结果',
       timeouter: -1,
       withoutValue: false, // 是否取值
@@ -170,6 +175,7 @@ new Vue({
     "phoneNum": "", // 手机号
             "jobNum": "@natural(100000,999999)", // 工号
 "identityCardUrl": "@image", // 身份证图片URL
+  "url": "http://baidu.com",
         "identityCard": "", // 身份证号
         "userName":      "@cname", // 姓名
         "sex|1": ["male","female"], // 性别
@@ -186,6 +192,9 @@ new Vue({
   watch: {
     sourceStr: function (newValue) {
       this.resultStr = this.parseJSON(newValue)
+    },
+    indent: function (newValue) {
+      this.resultStr = this.parseJSON(this.sourceStr)
     },
     withoutValue: function (newValue) {
       this.resultStr = this.parseJSON(this.sourceStr)
@@ -204,16 +213,16 @@ new Vue({
       }
       try {
         eval(`window._originStr = ${originStr}`)
-        let jsonStr = JSON.stringify(window._originStr, null, 4)
+        let jsonStr = JSON.stringify(window._originStr, null, this.indent ? 2 : 4)
         let remarkObj = [] // 备注信息
         let originStrLine = originStr.split('\n') // 初始数据的每一行
         let jsonStrLine = jsonStr.split('\n') // 解析后的数据
 
         // 获取备注信息
         originStrLine.forEach((line) => {
-          if (line.indexOf('//') > -1) {
+          if (/[^:]\/\//.test(line)) {
             let linePart = line.split('//')
-            remarkObj[line.split(':')[0].trim()] = ` //${linePart.pop()}`
+            remarkObj[line.split(':')[0].trim()] = ` // ${linePart.pop().trim()}`
           }
         })
 
@@ -235,7 +244,7 @@ new Vue({
         })
         return jsonStrLine.join('\n')
       } catch (e) {
-        return e.toString()
+        return 'JSON 数据有误：' + e.toString()
       }
     },
 
@@ -254,7 +263,7 @@ new Vue({
       document.body.appendChild($input)
       $input.select()
 
-      const result = document.execCommand('copy')
+      document.execCommand('copy')
       document.body.removeChild($input)
       $input = null
     }
