@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <meta name="keywords" content="iconfont preview for web">
-  <meta name="description" content="JSON Remark Parse, Momo's Blog, LuckyMomo">
+  <meta name="keywords" content="JSON Remark Parse, JSDoc Creator">
+  <meta name="description" content="JSON Remark Parse, JSDoc Creator, Momo's Blog, LuckyMomo">
   <title>JSON Remark Parse</title>
   <style>
   /*全局设置*/
@@ -45,7 +45,23 @@
     padding: 6px 12px;
     z-index: 2;
   }
-  .p-github:hover, .p-other:hover {
+  .p-help {
+    position: fixed;
+    right: 50px;
+    top: 50px;
+    width: 30px;
+    height: 30px;
+    color: #666666;
+    z-index: 2;
+    line-height: 30px;
+    font-weight: bolder;
+    border-radius: 50%;
+    border: 1px solid rgba(27, 31, 35, .2);
+    cursor: pointer;
+    background-color: #eff3f6;
+    background-image: linear-gradient(-180deg, #fafbfc, #eff3f6 90%);
+  }
+  .p-github:hover, .p-other:hover, .p-help {
     opacity: 0.9;
   }
   .p-other {
@@ -115,19 +131,25 @@
   .indent {
     right: 170px;
   }
+  .withJSDoc {
+    right: 230px;
+  }
   </style>
 </head>
 <body>
-<section id="app">
+<section id="app" v-cloak="">
+
   <!--顶部操作提示-->
   <section class="p-action g-box">{{ tips }}</section>
-  <a class="p-github" target="_blank" href="https://github.com/Momo707577045/iconFontPreview">github</a>
+  <a class="p-help" target="_blank" href="https://segmentfault.com/a/1190000021838130">?</a>
+  <a class="p-github" target="_blank" href="https://github.com/Momo707577045/JSON-Remark-Parse">github</a>
   <a class="p-other" target="_blank" href="http://blog.luckly-mjw.cn/tool-show/index.html">其他实用工具</a>
   <!--文件载入-->
   <section class="p-input-container">
     <textarea v-model="sourceStr" class="textarea-box" :placeholder="testStr"></textarea>
     <div class="line"></div>
     <textarea class="result-box" v-model="resultStr" readonly></textarea>
+    <i class="withJSDoc" :class="{active:withJSDoc}" @click="withJSDoc=!withJSDoc">JSDoc</i>
     <i class="indent" :class="{active:indent}" @click="indent=!indent">2缩进</i>
     <i class="without-value" :class="{active:withoutValue}" @click="withoutValue=!withoutValue">去值</i>
     <i class="copy" @click="copy">复制</i>
@@ -136,7 +158,7 @@
 </body>
 <script>
 var _hmt = _hmt || [];
-(function () {
+(function() {
   var hm = document.createElement("script");
   hm.src = "https://hm.baidu.com/hm.js?1f12b0865d866ae1b93514870d93ce89";
   var s = document.getElementsByTagName("script")[0];
@@ -147,6 +169,64 @@ var _hmt = _hmt || [];
 <script src="http://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>
 <script>
 
+// 首字母大写
+function capitalizeFirstLetter(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+
+// 生成 jsDoc 注释
+function toJSDoc({ obj, name }) {
+  let objects = []
+  let t = '/**\n'
+
+  if (name) {
+    t += ` * @typedef  {${capitalizeFirstLetter(typeof obj)}} ${capitalizeFirstLetter(name.split('|')[0])}\n`
+  }
+
+  for (let prop in obj) {
+    // 跳过默认参数
+    if (!obj.hasOwnProperty(prop)) {
+      continue
+    }
+
+    let type = capitalizeFirstLetter(typeof obj[prop]) // 参数类型
+
+    if (Array.isArray(obj[prop])) { // 判断是否为数组
+      type = !obj[prop].length ? '' : capitalizeFirstLetter(typeof obj[prop][0])
+      type = type + '[]'
+
+      // 对象数组
+      if (type === 'Object[]') {
+        t += ` * @property {${capitalizeFirstLetter(prop.split('|')[0])}[]} ${ prop.split('|')[0]}\n`
+        objects.push({
+          obj: obj[prop][0],
+          name: `${prop}`
+        })
+      }
+    } else if (type === 'Object') { // 判断是否为对象
+      t += ` * @property {${capitalizeFirstLetter(prop.split('|')[0])}} ${ prop.split('|')[0]}\n`
+      objects.push({
+        obj: obj[prop],
+        name: prop
+      })
+    } else {
+      t += ` * @property {${type}} ${prop}\n`
+    }
+  }
+
+  // 结束
+  t += ' */\n\n'
+
+  // 递归设置对象
+  objects.forEach(e => {
+    t += toJSDoc(e)
+  })
+
+  return t
+}
+
+
 new Vue({
   el: '#app',
 
@@ -155,6 +235,7 @@ new Vue({
       indent: false, // 是否2缩进
       tips: '带备注的 JSON 重排版工具，左源码，右结果',
       timeouter: -1,
+      withJSDoc: false, // 是否生成 JSDoc 备注
       withoutValue: false, // 是否取值
       sourceStr: '', // 源码字符串
       resultStr: '', // 结果字符串
@@ -190,13 +271,16 @@ new Vue({
   },
 
   watch: {
-    sourceStr: function (newValue) {
+    sourceStr: function(newValue) {
       this.resultStr = this.parseJSON(newValue)
     },
-    indent: function (newValue) {
+    withJSDoc: function() {
       this.resultStr = this.parseJSON(this.sourceStr)
     },
-    withoutValue: function (newValue) {
+    indent: function() {
+      this.resultStr = this.parseJSON(this.sourceStr)
+    },
+    withoutValue: function() {
       this.resultStr = this.parseJSON(this.sourceStr)
     }
   },
@@ -206,6 +290,8 @@ new Vue({
   },
 
   methods: {
+
+
     // 重排版 json
     parseJSON(originStr) {
       if (!originStr.trim()) {
@@ -214,9 +300,11 @@ new Vue({
       try {
         eval(`window._originStr = ${originStr}`)
         let jsonStr = JSON.stringify(window._originStr, null, this.indent ? 2 : 4)
-        let remarkObj = [] // 备注信息
+        let remarkObj = {} // 备注信息
         let originStrLine = originStr.split('\n') // 初始数据的每一行
         let jsonStrLine = jsonStr.split('\n') // 解析后的数据
+        let jsDocLine = toJSDoc({ obj: window._originStr, name: 'Data' }).split('\n') // jsDoc 备注
+
 
         // 获取备注信息
         originStrLine.forEach((line) => {
@@ -227,22 +315,42 @@ new Vue({
         })
 
         // 给格式化后的数据添加备注
-        jsonStrLine = jsonStrLine.map((line) => {
+        jsonStrLine = jsonStrLine.map(line => {
           if (this.withoutValue) {
             line = line.replace(/: "[^"]+"/, ': ""')
           }
           Object.keys(remarkObj).some((remarkItem) => {
             if (line.indexOf(remarkItem) > -1) {
-              let value = remarkObj[remarkItem]
-              delete remarkObj[remarkItem]
-              line += value
+              line += remarkObj[remarkItem]
               return true
             }
             return false
           })
           return line
         })
-        return jsonStrLine.join('\n')
+
+        // 给格式化后的 JSDoc 数据添加备注
+        console.log(jsDocLine)
+        jsDocLine = jsDocLine.map(line => {
+          Object.keys(remarkObj).some((remarkItem) => {
+            let remarkKey = remarkItem.replace(/"/ig, '').split('|')[0]
+            if (
+              line.toLowerCase().indexOf(` ${remarkKey.toLowerCase()}`) > -1 // 存在
+              && line.toLowerCase().indexOf(` ${remarkKey.toLowerCase()}`) === line.length - remarkKey.length - 1 // 完整匹配
+            ) {
+              line += remarkObj[remarkItem]
+              return true
+            }
+            return false
+          })
+          return line
+        })
+
+        if (!this.withJSDoc) {
+          return jsonStrLine.join('\n')
+        } else {
+          return jsDocLine.join('\n') + jsonStrLine.join('\n')
+        }
       } catch (e) {
         return 'JSON 数据有误：' + e.toString()
       }
