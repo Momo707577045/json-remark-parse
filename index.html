@@ -166,7 +166,7 @@ var _hmt = _hmt || [];
 })();
 </script>
 <!--vue 前端框架-->
-<script src="http://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>
+<script src="https://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>
 <script>
 
 // 首字母大写
@@ -174,58 +174,63 @@ function capitalizeFirstLetter(str) {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
+// 设置 JSDoc 备注
+function toJSDoc({ jsonObj, jsonObjName }, indent = 0) {
+  let objects = [] // 待解析对象
+  let jsDocStr = '' // jsDoc 备注字符串
 
-// 生成 jsDoc 注释
-function toJSDoc({ obj, name }) {
-  let objects = []
-  let t = '/**\n'
-
-  if (name) {
-    t += ` * @typedef  {${capitalizeFirstLetter(typeof obj)}} ${capitalizeFirstLetter(name.split('|')[0])}\n`
-  }
-
-  for (let prop in obj) {
-    // 跳过默认参数
-    if (!obj.hasOwnProperty(prop)) {
-      continue
-    }
-
-    let type = capitalizeFirstLetter(typeof obj[prop]) // 参数类型
-
-    if (Array.isArray(obj[prop])) { // 判断是否为数组
-      type = !obj[prop].length ? '' : capitalizeFirstLetter(typeof obj[prop][0])
-      type = type + '[]'
-
-      // 对象数组
-      if (type === 'Object[]') {
-        t += ` * @property {${capitalizeFirstLetter(prop.split('|')[0])}[]} ${ prop.split('|')[0]}\n`
-        objects.push({
-          obj: obj[prop][0],
-          name: `${prop}`
-        })
-      }
-    } else if (type === 'Object') { // 判断是否为对象
-      t += ` * @property {${capitalizeFirstLetter(prop.split('|')[0])}} ${ prop.split('|')[0]}\n`
+  if (Array.isArray(jsonObj)) {
+    let type = !jsonObj.length ? 'String' : capitalizeFirstLetter(typeof jsonObj[0])
+    if (type === 'Object') { // 对象数组
+      jsDocStr += ` * ${new Array(indent).fill('  ').join('')}@typedef  {${jsonObjName}Object[]} ${capitalizeFirstLetter(jsonObjName.split('|')[0])}\n`
       objects.push({
-        obj: obj[prop],
-        name: prop
+        jsonObjName: `${jsonObjName}Object`,
+        jsonObj: jsonObj[0],
       })
-    } else {
-      t += ` * @property {${type}} ${prop}\n`
+    } else { // 普通数组
+      jsDocStr += ` * ${new Array(indent).fill('  ').join('')}@typedef  {${type}[]} ${capitalizeFirstLetter(jsonObjName.split('|')[0])}\n`
+    }
+  } else {
+    jsDocStr += ` * ${new Array(indent).fill('  ').join('')}@typedef  {${capitalizeFirstLetter(typeof jsonObj)}} ${capitalizeFirstLetter(jsonObjName.split('|')[0])}\n`
+    for (let prop in jsonObj) {
+      // 跳过默认参数
+      if (!jsonObj.hasOwnProperty(prop)) {
+        continue
+      }
+
+      let type = capitalizeFirstLetter(typeof jsonObj[prop]) // 参数类型
+
+      if (Array.isArray(jsonObj[prop])) { // 判断是否为数组
+        type = !jsonObj[prop].length ? 'string' : capitalizeFirstLetter(typeof jsonObj[prop][0])
+        type = type + '[]'
+
+        // 对象数组
+        if (type === 'Object[]') {
+          jsDocStr += ` * ${new Array(indent + 1).fill('  ').join('')}@property {${capitalizeFirstLetter(prop.split('|')[0])}[]} ${ prop.split('|')[0]}\n`
+          objects.push({
+            jsonObjName: prop,
+            jsonObj: jsonObj[prop][0],
+          })
+        } else { // 普通基础数据类型数组
+          jsDocStr += ` * ${new Array(indent + 1).fill('  ').join('')}@property {${type}} ${prop}\n`
+        }
+      } else if (type === 'Object') { // 判断是否为对象
+        jsDocStr += ` * ${new Array(indent + 1).fill('  ').join('')}@property {${capitalizeFirstLetter(prop.split('|')[0])}} ${ prop.split('|')[0]}\n`
+        objects.push({
+          jsonObjName: prop,
+          jsonObj: jsonObj[prop]
+        })
+      } else {
+        jsDocStr += ` * ${new Array(indent + 1).fill('  ').join('')}@property {${type}} ${prop}\n`
+      }
     }
   }
-
-  // 结束
-  t += ' */\n\n'
 
   // 递归设置对象
-  objects.forEach(e => {
-    t += toJSDoc(e)
-  })
+  objects.forEach(e => jsDocStr += toJSDoc(e, indent + 1))
 
-  return t
+  return jsDocStr
 }
-
 
 new Vue({
   el: '#app',
@@ -291,7 +296,6 @@ new Vue({
 
   methods: {
 
-
     // 重排版 json
     parseJSON(originStr) {
       if (!originStr.trim()) {
@@ -303,8 +307,7 @@ new Vue({
         let remarkObj = {} // 备注信息
         let originStrLine = originStr.split('\n') // 初始数据的每一行
         let jsonStrLine = jsonStr.split('\n') // 解析后的数据
-        let jsDocLine = toJSDoc({ obj: window._originStr, name: 'Data' }).split('\n') // jsDoc 备注
-
+        let jsDocLine = toJSDoc({ jsonObj: window._originStr, jsonObjName: 'Data' }).split('\n') // jsDoc 备注
 
         // 获取备注信息
         originStrLine.forEach((line) => {
@@ -330,7 +333,6 @@ new Vue({
         })
 
         // 给格式化后的 JSDoc 数据添加备注
-        console.log(jsDocLine)
         jsDocLine = jsDocLine.map(line => {
           Object.keys(remarkObj).some((remarkItem) => {
             let remarkKey = remarkItem.replace(/"/ig, '').split('|')[0]
@@ -349,7 +351,7 @@ new Vue({
         if (!this.withJSDoc) {
           return jsonStrLine.join('\n')
         } else {
-          return jsDocLine.join('\n') + jsonStrLine.join('\n')
+          return jsDocLine.join('\n') + '\n' + jsonStrLine.join('\n')
         }
       } catch (e) {
         return 'JSON 数据有误：' + e.toString()
