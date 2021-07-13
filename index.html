@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <meta name="keywords" content="JSON Remark Parse, JSDoc Creator">
-  <meta name="description" content="JSON Remark Parse, JSDoc Creator, Momo's Blog, LuckyMomo">
+  <meta name="keywords" content="JSON Remark Parse, JSDoc Creator, Schema To JSON">
+  <meta name="description" content="JSON Remark Parse, JSDoc Creator, Schema To JSON, Momo's Blog, LuckyMomo">
   <title>JSON Remark Parse</title>
   <style>
   /*全局设置*/
@@ -27,6 +27,7 @@
     font-size: 35px;
     text-align: center;
     font-weight: bold;
+    white-space: pre-line;
   }
   .p-github, .p-other {
     position: fixed;
@@ -67,11 +68,19 @@
   .p-other {
     bottom: 30px;
   }
+  .intro {
+    padding-left: 20px;
+    text-align: left;
+  }
+  .intro p {
+    font-size: 12px;
+    color: #666666;
+  }
   /*字体文件载入*/
   .p-input-container {
     position: relative;
     display: flex;
-    padding-top: 20px;
+    padding-top: 6px;
   }
   .p-input-container .line {
     position: relative;
@@ -109,8 +118,8 @@
   }
   i {
     position: absolute;
-    top: 30px;
-    right: 50px;
+    top: 20px;
+    right: 30px;
     display: inline;
     padding: 4px 8px;
     font-size: 14px;
@@ -126,13 +135,17 @@
     opacity: 1;
   }
   .without-value {
-    right: 110px;
+    right: 82px;
   }
   .indent {
-    right: 170px;
+    right: 134px;
   }
   .withJSDoc {
-    right: 230px;
+    right: 194px;
+  }
+  .schemaJSON {
+    left: calc(50% - 140px);
+    right: unset;
   }
   </style>
 </head>
@@ -144,11 +157,19 @@
   <a class="p-help" target="_blank" href="https://segmentfault.com/a/1190000021838130">?</a>
   <a class="p-github" target="_blank" href="https://github.com/Momo707577045/JSON-Remark-Parse">github</a>
   <a class="p-other" target="_blank" href="http://blog.luckly-mjw.cn/tool-show/index.html">其他实用工具</a>
+
+  <!--工具功能-->
+  <div class="intro">
+    <p>* 带备注的 JSON 重排版：解决 yapi 无重排版的问题</p>
+    <p>* 自动生成对应的 JSDoc 备注信息：快速生成 yapi 数据对应的 JSDoc，完善前端接口文档</p>
+    <p>* 解析 schemaJSON 数据，转化为带备注的 JSON 数据：将 schemaJSON 转化为普通 JSON，解决 yapi schema 数据无法直接使用问题</p>
+  </div>
   <!--文件载入-->
   <section class="p-input-container">
     <textarea v-model="sourceStr" class="textarea-box" :placeholder="testStr"></textarea>
     <div class="line"></div>
     <textarea class="result-box" v-model="resultStr" readonly></textarea>
+    <i class="schemaJSON" :class="{active:schemaJSON}" @click="schemaJSON=!schemaJSON">schemaJSON</i>
     <i class="withJSDoc" :class="{active:withJSDoc}" @click="withJSDoc=!withJSDoc">JSDoc</i>
     <i class="indent" :class="{active:indent}" @click="indent=!indent">2缩进</i>
     <i class="without-value" :class="{active:withoutValue}" @click="withoutValue=!withoutValue">去值</i>
@@ -232,6 +253,77 @@ function toJSDoc({ jsonObj, jsonObjName }, indent = 0) {
   return jsDocStr
 }
 
+// schema 转化为 json
+function schemaToJSON(sourceObj) {
+  let remarkData = {} // 备注信息
+
+  // 解析数组
+  function parseArray(item, resultArray) {
+    if (item.items.type === 'string') {
+      resultArray[0] = ''
+    } else if (item.items.type === 'number') {
+      resultArray[0] = -1
+    } else if (item.items.type === 'array') {
+      resultArray[0] = []
+      parseArray(item.items, resultArray[0])
+    } else if (item.items.type === 'object') {
+      resultArray[0] = {}
+      parseObject(item.items.properties, resultArray[0])
+    }
+  }
+
+  // 解析对象
+  function parseObject(targetObj, resultObj = {}) {
+    Object.keys(targetObj).forEach(key => {
+      const item = targetObj[key]
+
+      if (item['title'] || item['description'] || item['minimum'] || item['maximum'] || item['minLength'] || item['maxLength']) { // 添加 remark
+        remarkData[key] = `// ${[
+          item['title'] || '',
+          item['description'] || '',
+          item['minimum'] ? `最小值 ${item['minimum']}` : '',
+          item['maximum'] ? `最大值 ${item['maximum']}` : '',
+          item['minLength'] ? `最小长度 ${item['minLength']}` : '',
+          item['maxLength'] ? `最大长度 ${item['maxLength']}` : '',
+        ].join(',')}`.replace(/[,]+/ig, ', ')
+        remarkData[key] = remarkData[key].substr(0, remarkData[key].length - 2)
+      }
+
+      if (item.type === 'string') {
+        resultObj[key] = ''
+      } else if (item.type === 'number') {
+        resultObj[key] = -1
+      } else if (item.type === 'object') {
+        resultObj[key] = {}
+        parseObject(item.properties, resultObj[key])
+      } else if (item.type === 'array') {
+        resultObj[key] = []
+        parseArray(item, resultObj[key])
+      }
+    })
+    return resultObj
+  }
+
+  // 添加备注
+  function addRemark(jsonData, remarkData) {
+    let jsonStr = JSON.stringify(jsonData, null, 4)
+    let jsonStrLine = jsonStr.split('\n') // 初始数据的每一行
+    let resultLine = jsonStrLine.map(line => { // 结果行
+      const lineParams = line.split(':')
+      if (lineParams[0].indexOf('"') > -1) {
+        let key = lineParams[0].trim().replace(/"/g, '')
+        return `${line} ${remarkData[key] || ''}`
+      }
+      return line
+    })
+    return resultLine.join('\n')
+  }
+
+  let json = parseObject(sourceObj.properties)
+  let jsonWithRemark = addRemark(json, remarkData)
+  return { json, jsonWithRemark }
+}
+
 new Vue({
   el: '#app',
 
@@ -241,6 +333,7 @@ new Vue({
       tips: '带备注的 JSON 重排版工具，左源码，右结果',
       timeouter: -1,
       withJSDoc: false, // 是否生成 JSDoc 备注
+      schemaJSON: false, // 是否待解析的是 schemaJSON 数据
       withoutValue: false, // 是否取值
       sourceStr: '', // 源码字符串
       resultStr: '', // 结果字符串
@@ -279,6 +372,9 @@ new Vue({
     sourceStr: function(newValue) {
       this.resultStr = this.parseJSON(newValue)
     },
+    schemaJSON: function() {
+      this.resultStr = this.parseJSON(this.sourceStr)
+    },
     withJSDoc: function() {
       this.resultStr = this.parseJSON(this.sourceStr)
     },
@@ -298,6 +394,15 @@ new Vue({
 
     // 重排版 json
     parseJSON(originStr) {
+      if (this.schemaJSON) {
+        try {
+          originStr = schemaToJSON(JSON.parse(originStr))['jsonWithRemark']
+        } catch (e) {
+          this.schemaJSON = false
+          alert('该数据不是有效的 schemeJSON')
+          console.log(e)
+        }
+      }
       if (!originStr.trim()) {
         originStr = this.testStr
       }
