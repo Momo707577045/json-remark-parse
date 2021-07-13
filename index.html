@@ -203,7 +203,7 @@ function toJSDoc({ jsonObj, jsonObjName }, indent = 0) {
   if (Array.isArray(jsonObj)) {
     let type = !jsonObj.length ? 'String' : capitalizeFirstLetter(typeof jsonObj[0])
     if (type === 'Object') { // 对象数组
-      jsDocStr += ` * ${new Array(indent).fill('  ').join('')}@typedef  {${jsonObjName}Object[]} ${capitalizeFirstLetter(jsonObjName.split('|')[0])}\n`
+      jsDocStr += ` * ${new Array(indent).fill('  ').join('')}@typedef  {${capitalizeFirstLetter(jsonObjName)}Object[]} ${capitalizeFirstLetter(jsonObjName.split('|')[0])}\n`
       objects.push({
         jsonObjName: `${jsonObjName}Object`,
         jsonObj: jsonObj[0],
