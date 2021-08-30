@@ -289,16 +289,18 @@ function schemaToJSON(sourceObj) {
         remarkData[key] = remarkData[key].substr(0, remarkData[key].length - 2)
       }
 
-      if (item.type === 'string') {
-        resultObj[key] = ''
-      } else if (item.type === 'number') {
-        resultObj[key] = -1
-      } else if (item.type === 'object') {
+      if (item.type === 'object') {
         resultObj[key] = {}
         parseObject(item.properties, resultObj[key])
       } else if (item.type === 'array') {
         resultObj[key] = []
         parseArray(item, resultObj[key])
+      } else if (item.mock && item.mock.mock) {
+        resultObj[key] = item.mock.mock
+      } else if (item.type === 'string') {
+        resultObj[key] = ''
+      } else if (item.type === 'number') {
+        resultObj[key] = -1
       }
     })
     return resultObj
@@ -407,12 +409,12 @@ new Vue({
         originStr = this.testStr
       }
       try {
-        eval(`window._originStr = ${originStr}`)
-        let jsonStr = JSON.stringify(window._originStr, null, this.indent ? 2 : 4)
+        const _originStr = eval(`(function(){ return ${originStr} })()`)
+        let jsonStr = JSON.stringify(_originStr, null, this.indent ? 2 : 4)
         let remarkObj = {} // 备注信息
         let originStrLine = originStr.split('\n') // 初始数据的每一行
         let jsonStrLine = jsonStr.split('\n') // 解析后的数据
-        let jsDocLine = toJSDoc({ jsonObj: window._originStr, jsonObjName: 'Data' }).split('\n') // jsDoc 备注
+        let jsDocLine = toJSDoc({ jsonObj: _originStr, jsonObjName: 'Data' }).split('\n') // jsDoc 备注
 
         // 获取备注信息
         originStrLine.forEach((line) => {
