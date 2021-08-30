@@ -296,7 +296,11 @@ function schemaToJSON(sourceObj) {
         resultObj[key] = []
         parseArray(item, resultObj[key])
       } else if (item.mock && item.mock.mock) {
-        resultObj[key] = item.mock.mock
+        if (item.type === 'number' && !isNaN(item.mock.mock)) {
+          resultObj[key] = Number(item.mock.mock)
+        } else {
+          resultObj[key] = item.mock.mock
+        }
       } else if (item.type === 'string') {
         resultObj[key] = ''
       } else if (item.type === 'number') {
