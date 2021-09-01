@@ -116,11 +116,14 @@
     display: block;
     border: 1px solid #bbbbbb;
   }
-  i {
+  .tool-box{
     position: absolute;
     top: 20px;
     right: 30px;
-    display: inline;
+    text-align: right;
+  }
+  i {
+    display: inline-block;
     padding: 4px 8px;
     font-size: 14px;
     color: white;
@@ -134,16 +137,9 @@
   i:hover, .active {
     opacity: 1;
   }
-  .without-value {
-    right: 82px;
-  }
-  .indent {
-    right: 134px;
-  }
-  .withJSDoc {
-    right: 194px;
-  }
   .schemaJSON {
+    position: absolute;
+    top: 20px;
     left: calc(50% - 140px);
     right: unset;
   }
@@ -167,13 +163,16 @@
   <!--文件载入-->
   <section class="p-input-container">
     <textarea v-model="sourceStr" class="textarea-box" :placeholder="testStr"></textarea>
+    <i class="schemaJSON" :class="{active:schemaJSON}" @click="schemaJSON=!schemaJSON">schemaJSON</i>
     <div class="line"></div>
     <textarea class="result-box" v-model="resultStr" readonly></textarea>
-    <i class="schemaJSON" :class="{active:schemaJSON}" @click="schemaJSON=!schemaJSON">schemaJSON</i>
-    <i class="withJSDoc" :class="{active:withJSDoc}" @click="withJSDoc=!withJSDoc">JSDoc</i>
-    <i class="indent" :class="{active:indent}" @click="indent=!indent">2缩进</i>
-    <i class="without-value" :class="{active:withoutValue}" @click="withoutValue=!withoutValue">去值</i>
-    <i class="copy" @click="copy">复制</i>
+    <div class="tool-box">
+      <i class="withJSDoc" :class="{active:withJSDoc}" @click="withJSDoc=!withJSDoc">JSDoc</i>
+      <i class="indent" :class="{active:indent}" @click="indent=!indent">2缩进</i>
+      <i class="without-value" :class="{active:withoutValue}" @click="withoutValue=!withoutValue">去值</i>
+      <i class="without-remark" :class="{active:withoutRemark}" @click="withoutRemark=!withoutRemark">去备注</i>
+      <i class="copy" @click="copy">复制</i>
+    </div>
   </section>
 </section>
 </body>
@@ -340,7 +339,8 @@ new Vue({
       timeouter: -1,
       withJSDoc: false, // 是否生成 JSDoc 备注
       schemaJSON: false, // 是否待解析的是 schemaJSON 数据
-      withoutValue: false, // 是否取值
+      withoutValue: false, // 是否去除值
+      withoutRemark: false, // 是否去除备注信息
       sourceStr: '', // 源码字符串
       resultStr: '', // 结果字符串
       testStr: `
@@ -387,9 +387,12 @@ new Vue({
     indent: function() {
       this.resultStr = this.parseJSON(this.sourceStr)
     },
+    withoutRemark: function() {
+      this.resultStr = this.parseJSON(this.sourceStr)
+    },
     withoutValue: function() {
       this.resultStr = this.parseJSON(this.sourceStr)
-    }
+    },
   },
 
   mounted() {
@@ -432,6 +435,9 @@ new Vue({
         jsonStrLine = jsonStrLine.map(line => {
           if (this.withoutValue) {
             line = line.replace(/: "[^"]+"/, ': ""')
+          }
+          if (this.withoutRemark) {
+            return line
           }
           Object.keys(remarkObj).some((remarkItem) => {
             if (line.indexOf(remarkItem) > -1) {
