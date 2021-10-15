@@ -116,7 +116,7 @@
     display: block;
     border: 1px solid #bbbbbb;
   }
-  .tool-box{
+  .tool-box {
     position: absolute;
     top: 20px;
     right: 30px;
@@ -169,6 +169,7 @@
     <div class="tool-box">
       <i class="withJSDoc" :class="{active:withJSDoc}" @click="withJSDoc=!withJSDoc">JSDoc</i>
       <i class="indent" :class="{active:indent}" @click="indent=!indent">2缩进</i>
+      <i class="align-remark" :class="{active:alignRemark}" @click="alignRemark=!alignRemark">对齐备注</i>
       <i class="without-value" :class="{active:withoutValue}" @click="withoutValue=!withoutValue">去值</i>
       <i class="without-remark" :class="{active:withoutRemark}" @click="withoutRemark=!withoutRemark">去备注</i>
       <i class="copy" @click="copy">复制</i>
@@ -334,13 +335,14 @@ new Vue({
 
   data() {
     return {
-      indent: false, // 是否2缩进
       tips: '带备注的 JSON 重排版工具，左源码，右结果',
       timeouter: -1,
-      withJSDoc: false, // 是否生成 JSDoc 备注
       schemaJSON: false, // 是否待解析的是 schemaJSON 数据
-      withoutValue: false, // 是否去除值
-      withoutRemark: false, // 是否去除备注信息
+      indent: localStorage.getItem('indent') === 'true', // 是否2缩进
+      withJSDoc: localStorage.getItem('withJSDoc') === 'true', // 是否生成 JSDoc 备注
+      alignRemark: localStorage.getItem('alignRemark') === 'true', // 是否对齐备注
+      withoutValue: localStorage.getItem('withoutValue') === 'true', // 是否去除值
+      withoutRemark: localStorage.getItem('withoutRemark') === 'true', // 是否去除备注信息
       sourceStr: '', // 源码字符串
       resultStr: '', // 结果字符串
       testStr: `
@@ -381,16 +383,24 @@ new Vue({
     schemaJSON: function() {
       this.resultStr = this.parseJSON(this.sourceStr)
     },
-    withJSDoc: function() {
+    withJSDoc: function(newValue) {
+      localStorage.setItem('withJSDoc', newValue)
       this.resultStr = this.parseJSON(this.sourceStr)
     },
-    indent: function() {
+    indent: function(newValue) {
+      localStorage.setItem('indent', newValue)
       this.resultStr = this.parseJSON(this.sourceStr)
     },
-    withoutRemark: function() {
+    alignRemark: function(newValue) {
+      localStorage.setItem('alignRemark', newValue)
       this.resultStr = this.parseJSON(this.sourceStr)
     },
-    withoutValue: function() {
+    withoutRemark: function(newValue) {
+      localStorage.setItem('withoutRemark', newValue)
+      this.resultStr = this.parseJSON(this.sourceStr)
+    },
+    withoutValue: function(newValue) {
+      localStorage.setItem('withoutValue', newValue)
       this.resultStr = this.parseJSON(this.sourceStr)
     },
   },
@@ -423,13 +433,29 @@ new Vue({
         let jsonStrLine = jsonStr.split('\n') // 解析后的数据
         let jsDocLine = toJSDoc({ jsonObj: _originStr, jsonObjName: 'Data' }).split('\n') // jsDoc 备注
 
+        let strItemNum = 0 // 内容项目数
+        let strMaxLength = 0 // 内容最长长度
+        let strAverageLength = 0 // 内容平均长度
+
         // 获取备注信息
         originStrLine.forEach((line) => {
           if (/[^:]\/\//.test(line)) {
-            let linePart = line.split('//')
-            remarkObj[line.split(':')[0].trim()] = ` // ${linePart.pop().trim()}`
+            let [content, remark] = line.split('//')
+            remarkObj[line.split(':')[0].trim()] = ` // ${remark.trim()}`
           }
         })
+
+        // 获取字符串长度
+        jsonStrLine.forEach(content => {
+          if (content.indexOf(':') > -1) {
+            strItemNum++
+            strAverageLength += content.length
+            strMaxLength = strMaxLength > content.length ? strMaxLength : content.length
+          }
+        })
+
+        strAverageLength = parseInt(strAverageLength / strItemNum)
+        strMaxLength = strMaxLength > strAverageLength + 20 ? parseInt((strAverageLength + strMaxLength) / 2) : strMaxLength // 设置对齐长度
 
         // 给格式化后的数据添加备注
         jsonStrLine = jsonStrLine.map(line => {
@@ -441,22 +467,7 @@ new Vue({
           }
           Object.keys(remarkObj).some((remarkItem) => {
             if (line.indexOf(remarkItem) > -1) {
-              line += remarkObj[remarkItem]
-              return true
-            }
-            return false
-          })
-          return line
-        })
-
-        // 给格式化后的 JSDoc 数据添加备注
-        jsDocLine = jsDocLine.map(line => {
-          Object.keys(remarkObj).some((remarkItem) => {
-            let remarkKey = remarkItem.replace(/"/ig, '').split('|')[0]
-            if (
-              line.toLowerCase().indexOf(` ${remarkKey.toLowerCase()}`) > -1 // 存在
-              && line.toLowerCase().indexOf(` ${remarkKey.toLowerCase()}`) === line.length - remarkKey.length - 1 // 完整匹配
-            ) {
+              line = this.alignRemark ? line.padEnd(strMaxLength) : line
               line += remarkObj[remarkItem]
               return true
             }
@@ -467,7 +478,34 @@ new Vue({
 
         if (!this.withJSDoc) {
           return jsonStrLine.join('\n')
-        } else {
+        } else {  // 给格式化后的 JSDoc 数据添加备注
+          strItemNum = 0
+          strMaxLength = 0
+          strAverageLength = 0
+          jsDocLine.forEach(content => {
+            strItemNum++
+            strAverageLength += content.length
+            strMaxLength = strMaxLength > content.length ? strMaxLength : content.length
+          })
+
+          strAverageLength = parseInt(strAverageLength / strItemNum)
+          strMaxLength = strMaxLength > strAverageLength + 20 ? parseInt((strAverageLength + strMaxLength) / 2) : strMaxLength // 设置对齐长度
+
+          jsDocLine = jsDocLine.map(line => {
+            Object.keys(remarkObj).some((remarkItem) => {
+              let remarkKey = remarkItem.replace(/"/ig, '').split('|')[0]
+              if (
+                line.toLowerCase().indexOf(` ${remarkKey.toLowerCase()}`) > -1 // 存在
+                && line.toLowerCase().indexOf(` ${remarkKey.toLowerCase()}`) === line.length - remarkKey.length - 1 // 完整匹配
+              ) {
+                line = this.alignRemark ? line.padEnd(strMaxLength) : line
+                line += remarkObj[remarkItem]
+                return true
+              }
+              return false
+            })
+            return line
+          })
           return jsDocLine.join('\n') + '\n' + jsonStrLine.join('\n')
         }
       } catch (e) {
