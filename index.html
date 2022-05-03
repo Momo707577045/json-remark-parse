@@ -1,351 +1,399 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta name="viewport"
+    content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <meta name="keywords" content="JSON Remark Parse, JSDoc Creator, Schema To JSON">
-  <meta name="description" content="JSON Remark Parse, JSDoc Creator, Schema To JSON, Momo's Blog, LuckyMomo">
+  <meta name="author" content="毛静文,Momo">
+  <meta name="keywords" content="带备注的 JSON 排班工具,毛静文的博客,Momo's Blog">
+  <meta name="description" content="带备注的 JSON 排班工具,YAPI JSON 格式化必备工具,YAPI JSON 美化工具">
   <title>JSON Remark Parse</title>
   <style>
-  /*全局设置*/
-  body::-webkit-scrollbar { display: none}
-  p {
-    margin: 0;
-  }
-  [v-cloak] {
-    display: none;
-  }
-  #app {
-    text-align: center;
-    padding: 10px 50px 0;
-  }
-  .p-action {
-    margin: 20px auto;
-    max-width: 1100px;
-    width: 100%;
-    font-size: 35px;
-    text-align: center;
-    font-weight: bold;
-    white-space: pre-line;
-  }
-  .p-github, .p-other {
-    position: fixed;
-    right: 50px;
-    bottom: 70px;
-    background-color: #eff3f6;
-    background-image: linear-gradient(-180deg, #fafbfc, #eff3f6 90%);
-    color: #24292e;
-    border: 1px solid rgba(27, 31, 35, .2);
-    border-radius: 3px;
-    cursor: pointer;
-    display: inline-block;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 20px;
-    padding: 6px 12px;
-    z-index: 2;
-  }
-  .p-help {
-    position: fixed;
-    right: 50px;
-    top: 50px;
-    width: 30px;
-    height: 30px;
-    color: #666666;
-    z-index: 2;
-    line-height: 30px;
-    font-weight: bolder;
-    border-radius: 50%;
-    border: 1px solid rgba(27, 31, 35, .2);
-    cursor: pointer;
-    background-color: #eff3f6;
-    background-image: linear-gradient(-180deg, #fafbfc, #eff3f6 90%);
-  }
-  .p-github:hover, .p-other:hover, .p-help {
-    opacity: 0.9;
-  }
-  .p-other {
-    bottom: 30px;
-  }
-  .intro {
-    padding-left: 20px;
-    text-align: left;
-  }
-  .intro p {
-    font-size: 12px;
-    color: #666666;
-  }
-  /*字体文件载入*/
-  .p-input-container {
-    position: relative;
-    display: flex;
-    padding-top: 6px;
-  }
-  .p-input-container .line {
-    position: relative;
-    vertical-align: top;
-    width: 5px;
-    top: 100px;
-    height: calc(100vh - 400px);
-    transform-origin: top;
-    background-repeat: repeat;
-    background-image: url(http://www.luckly-mjw.cn/baseSource/icon-dotted-y.png);
-  }
-  .p-input-container .textarea-box, .result-box {
-    margin: 0 20px;
-    padding: 10px;
-    height: calc(100vh - 200px);
-    flex: 1;
-    position: relative;
-    display: flex;
-    white-space: pre;
-    text-align: left;
-    color: #333333;
-    vertical-align: text-top;
-    font-size: 14px;
-    overflow: auto;
-    border-radius: 4px;
-    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
-  }
-  .textarea-box {
-    border: 1px solid #cccccc;
-    resize: none;
-  }
-  .result-box {
-    display: block;
-    border: 1px solid #bbbbbb;
-  }
-  .tool-box {
-    position: absolute;
-    top: 20px;
-    right: 30px;
-    text-align: right;
-  }
-  i {
-    display: inline-block;
-    padding: 4px 8px;
-    font-size: 14px;
-    color: white;
-    cursor: pointer;
-    border-radius: 4px;
-    border: 1px solid #aaaaaa;
-    background-color: #3D8AC7;
-    opacity: 0.7;
-    transition: 0.3s all;
-  }
-  i:hover, .active {
-    opacity: 1;
-  }
-  .schemaJSON {
-    position: absolute;
-    top: 20px;
-    left: calc(50% - 140px);
-    right: unset;
-  }
+    /*全局设置*/
+    body::-webkit-scrollbar {
+      display: none
+    }
+
+    p {
+      margin: 0;
+    }
+
+    [v-cloak] {
+      display: none;
+    }
+
+    #app {
+      text-align: center;
+      padding: 10px 50px 0;
+    }
+
+    .p-action {
+      margin: 20px auto;
+      max-width: 1100px;
+      width: 100%;
+      font-size: 35px;
+      text-align: center;
+      font-weight: bold;
+      white-space: pre-line;
+    }
+
+    .p-github,
+    .p-other {
+      position: fixed;
+      right: 50px;
+      bottom: 70px;
+      background-color: #eff3f6;
+      background-image: linear-gradient(-180deg, #fafbfc, #eff3f6 90%);
+      color: #24292e;
+      border: 1px solid rgba(27, 31, 35, .2);
+      border-radius: 3px;
+      cursor: pointer;
+      display: inline-block;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 20px;
+      padding: 6px 12px;
+      z-index: 2;
+    }
+
+    .p-help {
+      position: fixed;
+      right: 50px;
+      top: 50px;
+      width: 30px;
+      height: 30px;
+      color: #666666;
+      z-index: 2;
+      line-height: 30px;
+      font-weight: bolder;
+      border-radius: 50%;
+      border: 1px solid rgba(27, 31, 35, .2);
+      cursor: pointer;
+      background-color: #eff3f6;
+      background-image: linear-gradient(-180deg, #fafbfc, #eff3f6 90%);
+    }
+
+    .p-github:hover,
+    .p-other:hover,
+    .p-help {
+      opacity: 0.9;
+    }
+
+    .p-other {
+      bottom: 30px;
+    }
+
+    .intro {
+      padding-left: 20px;
+      text-align: left;
+    }
+
+    .intro p {
+      font-size: 12px;
+      color: #666666;
+    }
+
+    /*字体文件载入*/
+    .p-input-container {
+      position: relative;
+      display: flex;
+      padding-top: 6px;
+    }
+
+    .p-input-container .line {
+      position: relative;
+      vertical-align: top;
+      width: 5px;
+      top: 100px;
+      height: calc(100vh - 400px);
+      transform-origin: top;
+      background-repeat: repeat;
+      background-image: url(http://www.luckly-mjw.cn/baseSource/icon-dotted-y.png);
+    }
+
+    .p-input-container .textarea-box,
+    .result-box {
+      margin: 0 20px;
+      padding: 10px;
+      height: calc(100vh - 200px);
+      flex: 1;
+      position: relative;
+      display: flex;
+      white-space: pre;
+      text-align: left;
+      color: #333333;
+      vertical-align: text-top;
+      font-size: 14px;
+      overflow: auto;
+      border-radius: 4px;
+      font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+    }
+
+    .textarea-box {
+      border: 1px solid #cccccc;
+      resize: none;
+    }
+
+    .result-box {
+      display: block;
+      border: 1px solid #bbbbbb;
+    }
+
+    .tool-box {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      text-align: right;
+    }
+
+    i {
+      display: inline-block;
+      padding: 4px 8px;
+      font-size: 14px;
+      color: white;
+      cursor: pointer;
+      border-radius: 4px;
+      border: 1px solid #aaaaaa;
+      background-color: #3D8AC7;
+      opacity: 0.7;
+      transition: 0.3s all;
+    }
+
+    i:hover,
+    .active {
+      opacity: 1;
+    }
+
+    .schemaJSON {
+      position: absolute;
+      top: 20px;
+      left: calc(50% - 140px);
+      right: unset;
+    }
   </style>
 </head>
+
 <body>
-<section id="app" v-cloak="">
-
-  <!--顶部操作提示-->
-  <section class="p-action g-box">{{ tips }}</section>
-  <a class="p-help" target="_blank" href="https://segmentfault.com/a/1190000021838130">?</a>
-  <a class="p-github" target="_blank" href="https://github.com/Momo707577045/JSON-Remark-Parse">github</a>
-  <a class="p-other" target="_blank" href="http://blog.luckly-mjw.cn/tool-show/index.html">其他实用工具</a>
-
-  <!--工具功能-->
-  <div class="intro">
-    <p>* 带备注的 JSON 重排版：解决 yapi 无重排版的问题</p>
-    <p>* 自动生成对应的 JSDoc 备注信息：快速生成 yapi 数据对应的 JSDoc，完善前端接口文档</p>
-    <p>* 解析 schemaJSON 数据，转化为带备注的 JSON 数据：将 schemaJSON 转化为普通 JSON，解决 yapi schema 数据无法直接使用问题</p>
+  <div id="loading">
+    页面加载中，请耐心等待...
+    <h1 style="white-space: pre;">
+      推荐一个可以写备注的 JSON 排班工具，
+      YAPI JSON 格式化必备工具，YAPI JSON 美化工具，
+      自动生成对应的 JSDoc 备注信息，解析 schemaJSON 数据，转化为带备注的 JSON 数据，
+      工具链接：https://blog.luckly-mjw.cn/tool-show/json-remark-parse/index.html
+    </h1>
   </div>
-  <!--文件载入-->
-  <section class="p-input-container">
-    <textarea v-model="sourceStr" class="textarea-box" :placeholder="testStr"></textarea>
-    <i class="schemaJSON" :class="{active:schemaJSON}" @click="schemaJSON=!schemaJSON">schemaJSON</i>
-    <div class="line"></div>
-    <textarea class="result-box" v-model="resultStr" readonly></textarea>
-    <div class="tool-box">
-      <i class="withJSDoc" :class="{active:withJSDoc}" @click="withJSDoc=!withJSDoc">JSDoc</i>
-      <i class="indent" :class="{active:indent}" @click="indent=!indent">2缩进</i>
-      <i class="align-remark" :class="{active:alignRemark}" @click="alignRemark=!alignRemark">对齐备注</i>
-      <i class="without-value" :class="{active:withoutValue}" @click="withoutValue=!withoutValue">去值</i>
-      <i class="without-remark" :class="{active:withoutRemark}" @click="withoutRemark=!withoutRemark">去备注</i>
-      <i class="copy" @click="copy">复制</i>
+  <section id="app" v-cloak="">
+
+    <!--顶部操作提示-->
+    <section class="p-action g-box">{{ tips }}</section>
+    <a class="p-help" target="_blank" href="https://segmentfault.com/a/1190000021838130">?</a>
+    <a class="p-github" target="_blank" href="https://github.com/Momo707577045/JSON-Remark-Parse">github</a>
+    <a class="p-other" target="_blank" href="http://blog.luckly-mjw.cn/tool-show/index.html">其他实用工具</a>
+
+    <!--工具功能-->
+    <div class="intro">
+      <p>* 带备注的 JSON 重排版：解决 yapi 无重排版的问题</p>
+      <p>* 自动生成对应的 JSDoc 备注信息：快速生成 yapi 数据对应的 JSDoc，完善前端接口文档</p>
+      <p>* 解析 schemaJSON 数据，转化为带备注的 JSON 数据：将 schemaJSON 转化为普通 JSON，解决 yapi schema 数据无法直接使用问题</p>
     </div>
+    <!--文件载入-->
+    <section class="p-input-container">
+      <textarea v-model="sourceStr" class="textarea-box" :placeholder="testStr"></textarea>
+      <i class="schemaJSON" :class="{active:schemaJSON}" @click="schemaJSON=!schemaJSON">schemaJSON</i>
+      <div class="line"></div>
+      <textarea class="result-box" v-model="resultStr" readonly></textarea>
+      <div class="tool-box">
+        <i class="withJSDoc" :class="{active:withJSDoc}" @click="withJSDoc=!withJSDoc">JSDoc</i>
+        <i class="indent" :class="{active:indent}" @click="indent=!indent">2缩进</i>
+        <i class="namingType" :class="{active:namingType !== 'none'}" @click="changeNaming">{{
+          namingType === 'camelCase' ? '驼峰' :
+          namingType === 'underscore' ? '下划线' : '命名'
+          }}</i>
+        <i class="align-remark" :class="{active:alignRemark}" @click="alignRemark=!alignRemark">对齐备注</i>
+        <i class="without-value" :class="{active:withoutValue}" @click="withoutValue=!withoutValue">去值</i>
+        <i class="without-remark" :class="{active:withoutRemark}" @click="withoutRemark=!withoutRemark">去备注</i>
+        <i class="copy" @click="copy">复制</i>
+      </div>
+    </section>
   </section>
-</section>
 </body>
 <script>
-var _hmt = _hmt || [];
-(function() {
-  var hm = document.createElement("script");
-  hm.src = "https://hm.baidu.com/hm.js?1f12b0865d866ae1b93514870d93ce89";
-  var s = document.getElementsByTagName("script")[0];
-  s.parentNode.insertBefore(hm, s);
-})();
+  var _hmt = _hmt || [];
+  (function () {
+    var hm = document.createElement("script")
+    hm.src = "https://hm.baidu.com/hm.js?1f12b0865d866ae1b93514870d93ce89"
+    var s = document.getElementsByTagName("script")[0]
+    s.parentNode.insertBefore(hm, s)
+  })();
 </script>
 <!--vue 前端框架-->
-<script src="https://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>
+<script src="./beautify.js"></script>
+<script src="https://upyun.luckly-mjw.cn/lib/vue.js"></script>
 <script>
+  document.getElementById('loading') && document.getElementById('loading').remove()
 
-// 首字母大写
-function capitalizeFirstLetter(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1)
-}
 
-// 设置 JSDoc 备注
-function toJSDoc({ jsonObj, jsonObjName }, indent = 0) {
-  let objects = [] // 待解析对象
-  let jsDocStr = '' // jsDoc 备注字符串
 
-  if (Array.isArray(jsonObj)) {
-    let type = !jsonObj.length ? 'String' : capitalizeFirstLetter(typeof jsonObj[0])
-    if (type === 'Object') { // 对象数组
-      jsDocStr += ` * ${new Array(indent).fill('  ').join('')}@typedef  {${capitalizeFirstLetter(jsonObjName)}Object[]} ${capitalizeFirstLetter(jsonObjName.split('|')[0])}\n`
-      objects.push({
-        jsonObjName: `${jsonObjName}Object`,
-        jsonObj: jsonObj[0],
-      })
-    } else { // 普通数组
-      jsDocStr += ` * ${new Array(indent).fill('  ').join('')}@typedef  {${type}[]} ${capitalizeFirstLetter(jsonObjName.split('|')[0])}\n`
-    }
-  } else {
-    jsDocStr += ` * ${new Array(indent).fill('  ').join('')}@typedef  {${capitalizeFirstLetter(typeof jsonObj)}} ${capitalizeFirstLetter(jsonObjName.split('|')[0])}\n`
-    for (let prop in jsonObj) {
-      // 跳过默认参数
-      if (!jsonObj.hasOwnProperty(prop)) {
-        continue
+  // 首字母大写
+  function capitalizeFirstLetter(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1)
+  }
+
+  // 设置 JSDoc 备注
+  function toJSDoc({ jsonObj, jsonObjName }, indent = 0) {
+    let objects = [] // 待解析对象
+    let jsDocStr = '' // jsDoc 备注字符串
+
+    if (Array.isArray(jsonObj)) {
+      let type = !jsonObj.length ? 'String' : capitalizeFirstLetter(typeof jsonObj[0])
+      if (type === 'Object') { // 对象数组
+        jsDocStr += ` * ${new Array(indent).fill('  ').join('')}@typedef  {${capitalizeFirstLetter(jsonObjName)}Object[]} ${capitalizeFirstLetter(jsonObjName.split('|')[0])}\n`
+        objects.push({
+          jsonObjName: `${jsonObjName}Object`,
+          jsonObj: jsonObj[0],
+        })
+      } else { // 普通数组
+        jsDocStr += ` * ${new Array(indent).fill('  ').join('')}@typedef  {${type}[]} ${capitalizeFirstLetter(jsonObjName.split('|')[0])}\n`
       }
+    } else {
+      jsDocStr += ` * ${new Array(indent).fill('  ').join('')}@typedef  {${capitalizeFirstLetter(typeof jsonObj)}} ${capitalizeFirstLetter(jsonObjName.split('|')[0])}\n`
+      for (let prop in jsonObj) {
+        // 跳过默认参数
+        if (!jsonObj.hasOwnProperty(prop)) {
+          continue
+        }
 
-      let type = capitalizeFirstLetter(typeof jsonObj[prop]) // 参数类型
+        let type = capitalizeFirstLetter(typeof jsonObj[prop]) // 参数类型
 
-      if (Array.isArray(jsonObj[prop])) { // 判断是否为数组
-        type = !jsonObj[prop].length ? 'string' : capitalizeFirstLetter(typeof jsonObj[prop][0])
-        type = type + '[]'
+        if (Array.isArray(jsonObj[prop])) { // 判断是否为数组
+          type = !jsonObj[prop].length ? 'string' : capitalizeFirstLetter(typeof jsonObj[prop][0])
+          type = type + '[]'
 
-        // 对象数组
-        if (type === 'Object[]') {
-          jsDocStr += ` * ${new Array(indent + 1).fill('  ').join('')}@property {${capitalizeFirstLetter(prop.split('|')[0])}[]} ${ prop.split('|')[0]}\n`
+          // 对象数组
+          if (type === 'Object[]') {
+            jsDocStr += ` * ${new Array(indent + 1).fill('  ').join('')}@property {${capitalizeFirstLetter(prop.split('|')[0])}[]} ${prop.split('|')[0]}\n`
+            objects.push({
+              jsonObjName: prop,
+              jsonObj: jsonObj[prop][0],
+            })
+          } else { // 普通基础数据类型数组
+            jsDocStr += ` * ${new Array(indent + 1).fill('  ').join('')}@property {${type}} ${prop}\n`
+          }
+        } else if (type === 'Object') { // 判断是否为对象
+          jsDocStr += ` * ${new Array(indent + 1).fill('  ').join('')}@property {${capitalizeFirstLetter(prop.split('|')[0])}} ${prop.split('|')[0]}\n`
           objects.push({
             jsonObjName: prop,
-            jsonObj: jsonObj[prop][0],
+            jsonObj: jsonObj[prop]
           })
-        } else { // 普通基础数据类型数组
+        } else {
           jsDocStr += ` * ${new Array(indent + 1).fill('  ').join('')}@property {${type}} ${prop}\n`
         }
-      } else if (type === 'Object') { // 判断是否为对象
-        jsDocStr += ` * ${new Array(indent + 1).fill('  ').join('')}@property {${capitalizeFirstLetter(prop.split('|')[0])}} ${ prop.split('|')[0]}\n`
-        objects.push({
-          jsonObjName: prop,
-          jsonObj: jsonObj[prop]
-        })
-      } else {
-        jsDocStr += ` * ${new Array(indent + 1).fill('  ').join('')}@property {${type}} ${prop}\n`
       }
     }
+
+    // 递归设置对象
+    objects.forEach(e => jsDocStr += toJSDoc(e, indent + 1))
+
+    return jsDocStr
   }
 
-  // 递归设置对象
-  objects.forEach(e => jsDocStr += toJSDoc(e, indent + 1))
+  // schema 转化为 json
+  function schemaToJSON(sourceObj) {
+    let remarkData = {} // 备注信息
 
-  return jsDocStr
-}
-
-// schema 转化为 json
-function schemaToJSON(sourceObj) {
-  let remarkData = {} // 备注信息
-
-  // 解析数组
-  function parseArray(item, resultArray) {
-    if (item.items.type === 'string') {
-      resultArray[0] = ''
-    } else if (item.items.type === 'number') {
-      resultArray[0] = -1
-    } else if (item.items.type === 'array') {
-      resultArray[0] = []
-      parseArray(item.items, resultArray[0])
-    } else if (item.items.type === 'object') {
-      resultArray[0] = {}
-      parseObject(item.items.properties, resultArray[0])
-    }
-  }
-
-  // 解析对象
-  function parseObject(targetObj, resultObj = {}) {
-    Object.keys(targetObj).forEach(key => {
-      const item = targetObj[key]
-
-      if (item['title'] || item['description'] || item['minimum'] || item['maximum'] || item['minLength'] || item['maxLength']) { // 添加 remark
-        remarkData[key] = `// ${[
-          item['title'] || '',
-          item['description'] || '',
-          item['minimum'] ? `最小值 ${item['minimum']}` : '',
-          item['maximum'] ? `最大值 ${item['maximum']}` : '',
-          item['minLength'] ? `最小长度 ${item['minLength']}` : '',
-          item['maxLength'] ? `最大长度 ${item['maxLength']}` : '',
-        ].join(',')}`.replace(/[,]+/ig, ', ')
-        remarkData[key] = remarkData[key].substr(0, remarkData[key].length - 2)
+    // 解析数组
+    function parseArray(item, resultArray) {
+      if (item.items.type === 'string') {
+        resultArray[0] = ''
+      } else if (item.items.type === 'number') {
+        resultArray[0] = -1
+      } else if (item.items.type === 'array') {
+        resultArray[0] = []
+        parseArray(item.items, resultArray[0])
+      } else if (item.items.type === 'object') {
+        resultArray[0] = {}
+        parseObject(item.items.properties, resultArray[0])
       }
+    }
 
-      if (item.type === 'object') {
-        resultObj[key] = {}
-        parseObject(item.properties, resultObj[key])
-      } else if (item.type === 'array') {
-        resultObj[key] = []
-        parseArray(item, resultObj[key])
-      } else if (item.mock && item.mock.mock) {
-        if (item.type === 'number' && !isNaN(item.mock.mock)) {
-          resultObj[key] = Number(item.mock.mock)
-        } else {
-          resultObj[key] = item.mock.mock
+    // 解析对象
+    function parseObject(targetObj, resultObj = {}) {
+      Object.keys(targetObj).forEach(key => {
+        const item = targetObj[key]
+
+        if (item['title'] || item['description'] || item['minimum'] || item['maximum'] || item['minLength'] || item['maxLength']) { // 添加 remark
+          remarkData[key] = `// ${[
+            item['title'] || '',
+            item['description'] || '',
+            item['minimum'] ? `最小值 ${item['minimum']}` : '',
+            item['maximum'] ? `最大值 ${item['maximum']}` : '',
+            item['minLength'] ? `最小长度 ${item['minLength']}` : '',
+            item['maxLength'] ? `最大长度 ${item['maxLength']}` : '',
+          ].join(',')}`.replace(/[,]+/ig, ', ')
+          remarkData[key] = remarkData[key].substr(0, remarkData[key].length - 2)
         }
-      } else if (item.type === 'string') {
-        resultObj[key] = ''
-      } else if (item.type === 'number') {
-        resultObj[key] = -1
-      }
-    })
-    return resultObj
+
+        if (item.type === 'object') {
+          resultObj[key] = {}
+          parseObject(item.properties, resultObj[key])
+        } else if (item.type === 'array') {
+          resultObj[key] = []
+          parseArray(item, resultObj[key])
+        } else if (item.mock && item.mock.mock) {
+          if (item.type === 'number' && !isNaN(item.mock.mock)) {
+            resultObj[key] = Number(item.mock.mock)
+          } else {
+            resultObj[key] = item.mock.mock
+          }
+        } else if (item.type === 'string') {
+          resultObj[key] = ''
+        } else if (item.type === 'number') {
+          resultObj[key] = -1
+        }
+      })
+      return resultObj
+    }
+
+    // 添加备注
+    function addRemark(jsonData, remarkData) {
+      let jsonStr = JSON.stringify(jsonData, null, 4)
+      let jsonStrLine = jsonStr.split('\n') // 初始数据的每一行
+      let resultLine = jsonStrLine.map(line => { // 结果行
+        const lineParams = line.split(':')
+        if (lineParams[0].indexOf('"') > -1) {
+          let key = lineParams[0].trim().replace(/"/g, '')
+          return `${line} ${remarkData[key] || ''}`
+        }
+        return line
+      })
+      return resultLine.join('\n')
+    }
+
+    let json = parseObject(sourceObj.properties)
+    let jsonWithRemark = addRemark(json, remarkData)
+    return { json, jsonWithRemark }
   }
 
-  // 添加备注
-  function addRemark(jsonData, remarkData) {
-    let jsonStr = JSON.stringify(jsonData, null, 4)
-    let jsonStrLine = jsonStr.split('\n') // 初始数据的每一行
-    let resultLine = jsonStrLine.map(line => { // 结果行
-      const lineParams = line.split(':')
-      if (lineParams[0].indexOf('"') > -1) {
-        let key = lineParams[0].trim().replace(/"/g, '')
-        return `${line} ${remarkData[key] || ''}`
-      }
-      return line
-    })
-    return resultLine.join('\n')
-  }
+  new Vue({
+    el: '#app',
 
-  let json = parseObject(sourceObj.properties)
-  let jsonWithRemark = addRemark(json, remarkData)
-  return { json, jsonWithRemark }
-}
-
-new Vue({
-  el: '#app',
-
-  data() {
-    return {
-      tips: '带备注的 JSON 重排版工具，左源码，右结果',
-      timeouter: -1,
-      schemaJSON: false, // 是否待解析的是 schemaJSON 数据
-      indent: localStorage.getItem('indent') === 'true', // 是否2缩进
-      withJSDoc: localStorage.getItem('withJSDoc') === 'true', // 是否生成 JSDoc 备注
-      alignRemark: localStorage.getItem('alignRemark') === 'true', // 是否对齐备注
-      withoutValue: localStorage.getItem('withoutValue') === 'true', // 是否去除值
-      withoutRemark: localStorage.getItem('withoutRemark') === 'true', // 是否去除备注信息
-      sourceStr: '', // 源码字符串
-      resultStr: '', // 结果字符串
-      testStr: `
+    data() {
+      return {
+        tips: '带备注的 JSON 重排版工具，左源码，右结果',
+        timeouter: -1,
+        schemaJSON: false, // 是否待解析的是 schemaJSON 数据
+        indent: localStorage.getItem('indent') === 'true', // 是否2缩进
+        namingType: localStorage.getItem('namingType') || 'none', // 命名方式，none 不变，camelCase 驼峰命名，underscore 下划线命名
+        withJSDoc: localStorage.getItem('withJSDoc') === 'true', // 是否生成 JSDoc 备注
+        alignRemark: localStorage.getItem('alignRemark') === 'true', // 是否对齐备注
+        withoutValue: localStorage.getItem('withoutValue') === 'true', // 是否去除值
+        withoutRemark: localStorage.getItem('withoutRemark') === 'true', // 是否去除备注信息
+        sourceStr: '', // 源码字符串
+        resultStr: '', // 结果字符串
+        testStr: `
        {
           "code": 200,
     "message": "操作成功",
@@ -358,6 +406,7 @@ new Vue({
              },
 
 
+"type":[1,2,3],
       "list|1-9":[{
     "phoneNum": "", // 手机号
             "jobNum": "@natural(100000,999999)", // 工号
@@ -373,131 +422,126 @@ new Vue({
 
   }
 }`,
-    }
-  },
+      }
+    },
 
-  watch: {
-    sourceStr: function(newValue) {
-      this.resultStr = this.parseJSON(newValue)
+    watch: {
+      sourceStr: function (newValue) {
+        this.resultStr = this.parseJSON(newValue)
+      },
+      schemaJSON: function () {
+        this.resultStr = this.parseJSON(this.sourceStr)
+      },
+      namingType: function (newValue) {
+        localStorage.setItem('namingType', newValue)
+        this.resultStr = this.parseJSON(this.sourceStr)
+      },
+      withJSDoc: function (newValue) {
+        localStorage.setItem('withJSDoc', newValue)
+        this.resultStr = this.parseJSON(this.sourceStr)
+      },
+      indent: function (newValue) {
+        localStorage.setItem('indent', newValue)
+        this.resultStr = this.parseJSON(this.sourceStr)
+      },
+      alignRemark: function (newValue) {
+        localStorage.setItem('alignRemark', newValue)
+        this.resultStr = this.parseJSON(this.sourceStr)
+      },
+      withoutRemark: function (newValue) {
+        localStorage.setItem('withoutRemark', newValue)
+        this.resultStr = this.parseJSON(this.sourceStr)
+      },
+      withoutValue: function (newValue) {
+        localStorage.setItem('withoutValue', newValue)
+        this.resultStr = this.parseJSON(this.sourceStr)
+      },
     },
-    schemaJSON: function() {
-      this.resultStr = this.parseJSON(this.sourceStr)
-    },
-    withJSDoc: function(newValue) {
-      localStorage.setItem('withJSDoc', newValue)
-      this.resultStr = this.parseJSON(this.sourceStr)
-    },
-    indent: function(newValue) {
-      localStorage.setItem('indent', newValue)
-      this.resultStr = this.parseJSON(this.sourceStr)
-    },
-    alignRemark: function(newValue) {
-      localStorage.setItem('alignRemark', newValue)
-      this.resultStr = this.parseJSON(this.sourceStr)
-    },
-    withoutRemark: function(newValue) {
-      localStorage.setItem('withoutRemark', newValue)
-      this.resultStr = this.parseJSON(this.sourceStr)
-    },
-    withoutValue: function(newValue) {
-      localStorage.setItem('withoutValue', newValue)
-      this.resultStr = this.parseJSON(this.sourceStr)
-    },
-  },
 
-  mounted() {
-    this.resultStr = this.parseJSON(this.testStr)
-  },
+    mounted() {
+      this.resultStr = this.parseJSON(this.testStr)
+    },
 
-  methods: {
+    methods: {
 
-    // 重排版 json
-    parseJSON(originStr) {
-      if (this.schemaJSON) {
-        try {
-          originStr = schemaToJSON(JSON.parse(originStr))['jsonWithRemark']
-        } catch (e) {
-          this.schemaJSON = false
-          alert('该数据不是有效的 schemeJSON')
-          console.log(e)
+      // 变量命名方式
+      changeNaming() {
+        if (this.namingType === 'none') {
+          this.namingType = 'camelCase'
+        } else if (this.namingType === 'camelCase') {
+          this.namingType = 'underscore'
+        } else {
+          this.namingType = 'none'
         }
-      }
-      if (!originStr.trim()) {
-        originStr = this.testStr
-      }
-      try {
-        const _originStr = eval(`(function(){ return (${originStr})})()`);
-        let jsonStr = JSON.stringify(_originStr, null, this.indent ? 2 : 4)
-        let remarkObj = {} // 备注信息
-        let originStrLine = originStr.split('\n') // 初始数据的每一行
-        let jsonStrLine = jsonStr.split('\n') // 解析后的数据
-        let jsDocLine = toJSDoc({ jsonObj: _originStr, jsonObjName: 'Data' }).split('\n') // jsDoc 备注
+        localStorage.setItem('namingType', this.namingType)
+      },
 
-        let strItemNum = 0 // 内容项目数
-        let strMaxLength = 0 // 内容最长长度
-        let strAverageLength = 0 // 内容平均长度
+      // 重排版 json
+      parseJSON(originStr) {
+        if (!originStr.trim()) {
+          originStr = this.testStr
+        }
 
-        // 获取备注信息
-        originStrLine.forEach((line) => {
-          if (/[^:]\/\//.test(line)) {
-            let [content, remark] = line.split('//')
-            remarkObj[line.split(':')[0].trim()] = ` // ${remark.trim()}`
+        if (this.namingType === 'camelCase') {
+          originStr = originStr.replace(/\_(\w)/g, (_, letter) => letter.toUpperCase())
+        } else if(this.namingType === 'underscore'){
+          originStr = originStr.replace(/([A-Z])/g, '_$1').toLowerCase()
+        }
+
+        if (this.schemaJSON) {
+          try {
+            originStr = schemaToJSON(JSON.parse(originStr))['jsonWithRemark']
+          } catch (e) {
+            this.schemaJSON = false
+            alert('该数据不是有效的 schemeJSON')
+            console.log(e)
           }
-        })
+        }
 
-        // 获取字符串长度
-        jsonStrLine.forEach(content => {
-          if (content.indexOf(':') > -1) {
-            strItemNum++
-            strAverageLength += content.length
-            strMaxLength = strMaxLength > content.length ? strMaxLength : content.length
-          }
-        })
+        try {
+          const _originStr = eval(`(function(){ return (${originStr})})()`) // 去除了备注后的对象
+          let jsonStr = js_beautify(originStr, { indent_size: this.indent ? 2 : 4 }) // 为了解决 JSON.stringify 后，数组被强制换行，及单独一行的备注，信息丢失问题，使用了 js_beautify 库
+          let remarkObj = {} // 备注信息
+          let originStrLine = originStr.split('\n') // 初始数据的每一行
+          let jsonStrLine = jsonStr.split('\n') // 解析后的数据
+          let jsDocLine = toJSDoc({ jsonObj: _originStr, jsonObjName: 'Data' }).split('\n') // jsDoc 备注
 
-        strAverageLength = parseInt(strAverageLength / strItemNum)
-        strMaxLength = strMaxLength > strAverageLength + 20 ? parseInt((strAverageLength + strMaxLength) / 2) : strMaxLength // 设置对齐长度
+          let strItemNum = 0 // 内容项目数
+          let strMaxLength = 0 // 内容最长长度
+          let strAverageLength = 0 // 内容平均长度
 
-        // 给格式化后的数据添加备注
-        jsonStrLine = jsonStrLine.map(line => {
-          if (this.withoutValue) {
-            line = line.replace(/: "[^"]+"/, ': ""')
-          }
-          if (this.withoutRemark) {
-            return line
-          }
-          Object.keys(remarkObj).some((remarkItem) => {
-            if (line.indexOf(remarkItem) > -1) {
-              line = this.alignRemark ? line.padEnd(strMaxLength) : line
-              line += remarkObj[remarkItem]
-              return true
+          // 获取备注信息
+          originStrLine.forEach((line) => {
+            if (/[^:]\/\//.test(line)) {
+              let [content, remark] = line.split('//')
+              remarkObj[line.split(':')[0].trim()] = ` // ${remark.trim()}`
             }
-            return false
           })
-          return line
-        })
 
-        if (!this.withJSDoc) {
-          return jsonStrLine.join('\n')
-        } else {  // 给格式化后的 JSDoc 数据添加备注
-          strItemNum = 0
-          strMaxLength = 0
-          strAverageLength = 0
-          jsDocLine.forEach(content => {
-            strItemNum++
-            strAverageLength += content.length
-            strMaxLength = strMaxLength > content.length ? strMaxLength : content.length
+          // 获取字符串长度
+          jsonStrLine.forEach(content => {
+            if (content.indexOf(':') > -1) {
+              strItemNum++
+              strAverageLength += content.length
+              strMaxLength = strMaxLength > content.length ? strMaxLength : content.length
+            }
           })
 
           strAverageLength = parseInt(strAverageLength / strItemNum)
           strMaxLength = strMaxLength > strAverageLength + 20 ? parseInt((strAverageLength + strMaxLength) / 2) : strMaxLength // 设置对齐长度
 
-          jsDocLine = jsDocLine.map(line => {
+          // 给格式化后的数据添加备注
+          jsonStrLine = jsonStrLine.map(line => {
+            if (this.withoutValue) {
+              line = line.replace(/: "[^"]+"/, ': ""')
+            }
+            if (this.withoutRemark) {
+              return line.split(' //')[0] // 去除 js_beautify 后保留的备注信息
+            }
             Object.keys(remarkObj).some((remarkItem) => {
-              let remarkKey = remarkItem.replace(/"/ig, '').split('|')[0]
-              if (
-                line.toLowerCase().indexOf(` ${remarkKey.toLowerCase()}`) > -1 // 存在
-                && line.toLowerCase().indexOf(` ${remarkKey.toLowerCase()}`) === line.length - remarkKey.length - 1 // 完整匹配
-              ) {
+              if (line.indexOf(remarkItem) > -1) {
+                // 去除 js_beautify 后保留的备注信息
+                line = line.split(' //')[0]
                 line = this.alignRemark ? line.padEnd(strMaxLength) : line
                 line += remarkObj[remarkItem]
                 return true
@@ -505,35 +549,67 @@ new Vue({
               return false
             })
             return line
-          })
-          return jsDocLine.join('\n') + '\n' + jsonStrLine.join('\n')
+          }).filter(line => line.trim()) // 去除空行
+
+          if (!this.withJSDoc) {
+            return jsonStrLine.join('\n')
+          } else {  // 给格式化后的 JSDoc 数据添加备注
+            strItemNum = 0
+            strMaxLength = 0
+            strAverageLength = 0
+            jsDocLine.forEach(content => {
+              strItemNum++
+              strAverageLength += content.length
+              strMaxLength = strMaxLength > content.length ? strMaxLength : content.length
+            })
+
+            strAverageLength = parseInt(strAverageLength / strItemNum)
+            strMaxLength = strMaxLength > strAverageLength + 20 ? parseInt((strAverageLength + strMaxLength) / 2) : strMaxLength // 设置对齐长度
+
+            jsDocLine = jsDocLine.map(line => {
+              Object.keys(remarkObj).some((remarkItem) => {
+                let remarkKey = remarkItem.replace(/"/ig, '').split('|')[0]
+                if (
+                  line.toLowerCase().indexOf(` ${remarkKey.toLowerCase()}`) > -1 // 存在
+                  && line.toLowerCase().indexOf(` ${remarkKey.toLowerCase()}`) === line.length - remarkKey.length - 1 // 完整匹配
+                ) {
+                  line = this.alignRemark ? line.padEnd(strMaxLength) : line
+                  line += remarkObj[remarkItem]
+                  return true
+                }
+                return false
+              })
+              return line
+            })
+            return jsDocLine.join('\n') + '\n' + jsonStrLine.join('\n')
+          }
+        } catch (e) {
+          console.log(e)
+          return 'JSON 数据有误：' + e.toString()
         }
-      } catch (e) {
-        console.log(e)
-        return 'JSON 数据有误：' + e.toString()
+      },
+
+      // 拷贝结果
+      copy() {
+        clearTimeout(this.timeouter)
+        this.tips = `复制成功`
+        this.timeouter = setTimeout(() => { this.tips = `带备注的 JSON 重排版工具，左源码，右结果` }, 1000)
+        if (!document.queryCommandSupported('copy')) {
+          return false
+        }
+
+        let $input = document.createElement('textarea')
+        $input.style.opacity = '0'
+        $input.value = this.resultStr
+        document.body.appendChild($input)
+        $input.select()
+
+        document.execCommand('copy')
+        document.body.removeChild($input)
+        $input = null
       }
     },
-
-    // 拷贝结果
-    copy() {
-      clearTimeout(this.timeouter)
-      this.tips = `复制成功`
-      this.timeouter = setTimeout(() => {this.tips = `带备注的 JSON 重排版工具，左源码，右结果`}, 1000)
-      if (!document.queryCommandSupported('copy')) {
-        return false
-      }
-
-      let $input = document.createElement('textarea')
-      $input.style.opacity = '0'
-      $input.value = this.resultStr
-      document.body.appendChild($input)
-      $input.select()
-
-      document.execCommand('copy')
-      document.body.removeChild($input)
-      $input = null
-    }
-  },
-})
+  })
 </script>
+
 </html>
