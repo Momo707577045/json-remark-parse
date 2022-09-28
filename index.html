@@ -208,6 +208,7 @@
       <div class="tool-box">
         <i class="withJSDoc" :class="{active:withJSDoc}" @click="withJSDoc=!withJSDoc">JSDoc</i>
         <i class="indent" :class="{active:indent}" @click="indent=!indent">2缩进</i>
+        <i class="strictJSON" :class="{active:strictJSON}" @click="strictJSON=!strictJSON">双引号</i>
         <i class="namingType" :class="{active:namingType !== 'none'}" @click="changeNaming">{{
           namingType === 'camelCase' ? '驼峰' :
           namingType === 'underscore' ? '下划线' : '命名'
@@ -391,13 +392,14 @@
         alignRemark: localStorage.getItem('alignRemark') === 'true', // 是否对齐备注
         withoutValue: localStorage.getItem('withoutValue') === 'true', // 是否去除值
         withoutRemark: localStorage.getItem('withoutRemark') === 'true', // 是否去除备注信息
+        strictJSON: localStorage.getItem('strictJSON') === 'true', // 是否严格模式JSON
         sourceStr: '', // 源码字符串
         resultStr: '', // 结果字符串
         testStr: `
        {
           "code": 200,
-    "message": "操作成功",
-  "data": {
+    "message": '操作成功',
+  'data': {
         "page":{
             "pageIndex": "1", // 第几页
            "pageSize": "1", // 每页数据量
@@ -406,7 +408,7 @@
              },
 
 
-"type":[1,2,3],
+type:[1,2,3],
       "list|1-9":[{
     "phoneNum": "", // 手机号
             "jobNum": "@natural(100000,999999)", // 工号
@@ -454,6 +456,10 @@
       },
       withoutValue: function (newValue) {
         localStorage.setItem('withoutValue', newValue)
+        this.resultStr = this.parseJSON(this.sourceStr)
+      },
+      strictJSON: function (newValue) {
+        localStorage.setItem('strictJSON', newValue)
         this.resultStr = this.parseJSON(this.sourceStr)
       },
     },
@@ -533,7 +539,13 @@
           // 给格式化后的数据添加备注
           jsonStrLine = jsonStrLine.map(line => {
             if (this.withoutValue) {
-              line = line.replace(/: "[^"]+"/, ': ""')
+              line = line.replace(/: "[^"]+"/, ': ""').replace(/: '[^']+'/, ": ''")
+            }
+            if (this.strictJSON) {
+              line = line
+              .replace(/: '([^']*)'/, `: "$1"`)
+              .replace(/'([^']*)': /, `"$1": `)
+              .replace(/([a-zA-Z0-9_]+): /, `"$1": `)
             }
             if (this.withoutRemark) {
               return line.split(' //')[0] // 去除 js_beautify 后保留的备注信息
