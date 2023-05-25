@@ -100,6 +100,7 @@
       position: relative;
       display: flex;
       padding-top: 6px;
+      height: calc(100vh - 200px);
     }
 
     .p-input-container .line {
@@ -114,10 +115,10 @@
     }
 
     .p-input-container .textarea-box,
-    .result-box {
-      margin: 0 20px;
+    .p-input-container .result-box {
+      margin: 40px 20px 0;
       padding: 10px;
-      height: calc(100vh - 200px);
+      height: 100%;
       flex: 1;
       position: relative;
       display: flex;
@@ -143,8 +144,8 @@
 
     .tool-box {
       position: absolute;
-      top: 20px;
-      right: 30px;
+      top: 10px;
+      right: 20px;
       text-align: right;
     }
 
@@ -168,8 +169,8 @@
 
     .schemaJSON {
       position: absolute;
-      top: 20px;
-      left: calc(50% - 140px);
+      top: 10px;
+      left: calc(50% - 132px);
       right: unset;
     }
   </style>
@@ -185,34 +186,38 @@
       工具链接：https://blog.luckly-mjw.cn/tool-show/json-remark-parse/index.html
     </h1>
   </div>
-  <section id="app" v-cloak="">
+  <section id="app" v-cloak="" :style="{ padding: iframeMode ? 0 : '10px 50px 0' }">
 
     <!--顶部操作提示-->
-    <section class="p-action g-box">{{ tips }}</section>
-    <a class="p-help" target="_blank" href="https://segmentfault.com/a/1190000021838130">?</a>
-    <a class="p-github" target="_blank" href="https://github.com/Momo707577045/JSON-Remark-Parse">github</a>
-    <a class="p-other" target="_blank" href="http://blog.luckly-mjw.cn/tool-show/index.html">其他实用工具</a>
+    <template v-if="!iframeMode">
+      <section class="p-action g-box">{{ tips }}</section>
+      <a class="p-help" target="_blank" href="https://segmentfault.com/a/1190000021838130">?</a>
+      <a class="p-github" target="_blank" href="https://github.com/Momo707577045/JSON-Remark-Parse">github</a>
+      <a class="p-other" target="_blank" href="http://blog.luckly-mjw.cn/tool-show/index.html">其他实用工具</a>
 
-    <!--工具功能-->
-    <div class="intro">
-      <p>* 带备注的 JSON 重排版：解决 yapi 无重排版的问题</p>
-      <p>* 自动生成对应的 JSDoc 备注信息：快速生成 yapi 数据对应的 JSDoc，完善前端接口文档</p>
-      <p>* 解析 schemaJSON 数据，转化为带备注的 JSON 数据：将 schemaJSON 转化为普通 JSON，解决 yapi schema 数据无法直接使用问题</p>
-    </div>
+      <!--工具功能-->
+      <div class="intro">
+        <p>* 带备注的 JSON 重排版：解决 yapi 无重排版的问题</p>
+        <p>* 自动生成对应的 JSDoc 备注信息：快速生成 yapi 数据对应的 JSDoc，完善前端接口文档</p>
+        <p>* 解析 schemaJSON 数据，转化为带备注的 JSON 数据：将 schemaJSON 转化为普通 JSON，解决 yapi schema 数据无法直接使用问题</p>
+      </div>
+    </template>
+
     <!--文件载入-->
-    <section class="p-input-container">
-      <textarea v-model="sourceStr" class="textarea-box" :placeholder="testStr"></textarea>
-      <i class="schemaJSON" :class="{active:schemaJSON}" @click="schemaJSON=!schemaJSON">schemaJSON</i>
-      <div class="line"></div>
+    <section class="p-input-container" :style="{height: `calc(100vh - ${ iframeMode ? 100 : 200}px)`}">
+      <template v-if="!onlyRead">
+        <textarea v-model="sourceStr" class="textarea-box" :placeholder="testStr"></textarea>
+        <i class="schemaJSON" :class="{active:schemaJSON}" @click="schemaJSON=!schemaJSON">schemaJSON</i>
+        <div class="line"></div>
+      </template>
       <textarea class="result-box" v-model="resultStr" readonly></textarea>
       <div class="tool-box">
+        <i class="without-remark" :class="{active:onlyRead}" @click="onlyRead=!onlyRead">只读</i>
         <i class="withJSDoc" :class="{active:withJSDoc}" @click="withJSDoc=!withJSDoc">JSDoc</i>
         <i class="indent" :class="{active:indent}" @click="indent=!indent">2缩进</i>
         <i class="strictJSON" :class="{active:strictJSON}" @click="strictJSON=!strictJSON">双引号</i>
-        <i class="namingType" :class="{active:namingType !== 'none'}" @click="changeNaming">{{
-          namingType === 'camelCase' ? '驼峰' :
-          namingType === 'underscore' ? '下划线' : '命名'
-          }}</i>
+        <i class="namingType" :class="{active:namingType !== 'none'}" @click="changeNaming">{{ namingType ===
+          'camelCase' ? '驼峰' : namingType === 'underscore' ? '下划线' : '命名' }}</i>
         <i class="align-remark" :class="{active:alignRemark}" @click="alignRemark=!alignRemark">对齐备注</i>
         <i class="without-value" :class="{active:withoutValue}" @click="withoutValue=!withoutValue">去值</i>
         <i class="without-remark" :class="{active:withoutRemark}" @click="withoutRemark=!withoutRemark">去备注</i>
@@ -234,9 +239,8 @@
 <script src="./beautify.js"></script>
 <script src="https://upyun.luckly-mjw.cn/lib/vue.js"></script>
 <script>
+  console.log('parent', window.parent, !!window.parent)
   document.getElementById('loading') && document.getElementById('loading').remove()
-
-
 
   // 首字母大写
   function capitalizeFirstLetter(str) {
@@ -378,12 +382,13 @@
     return { json, jsonWithRemark }
   }
 
-  new Vue({
+  window.vueInstance = new Vue({
     el: '#app',
 
     data() {
       return {
         tips: '带备注的 JSON 重排版工具，左源码，右结果',
+        iframeMode: window.parent !== window, // 是否使用 iframe 简洁模式
         timeouter: -1,
         schemaJSON: false, // 是否待解析的是 schemaJSON 数据
         indent: localStorage.getItem('indent') === 'true', // 是否2缩进
@@ -393,6 +398,7 @@
         withoutValue: localStorage.getItem('withoutValue') === 'true', // 是否去除值
         withoutRemark: localStorage.getItem('withoutRemark') === 'true', // 是否去除备注信息
         strictJSON: localStorage.getItem('strictJSON') === 'true', // 是否严格模式JSON
+        onlyRead: localStorage.getItem('onlyRead') === 'true' || !!window.parent, // 只读
         sourceStr: '', // 源码字符串
         resultStr: '', // 结果字符串
         testStr: `
@@ -458,6 +464,10 @@ type:[1,2,3],
         localStorage.setItem('withoutValue', newValue)
         this.resultStr = this.parseJSON(this.sourceStr)
       },
+      onlyRead: function (newValue) {
+        localStorage.setItem('onlyRead', newValue)
+        this.resultStr = this.parseJSON(this.sourceStr)
+      },
       strictJSON: function (newValue) {
         localStorage.setItem('strictJSON', newValue)
         this.resultStr = this.parseJSON(this.sourceStr)
@@ -466,6 +476,7 @@ type:[1,2,3],
 
     mounted() {
       this.resultStr = this.parseJSON(this.testStr)
+
     },
 
     methods: {
@@ -490,7 +501,7 @@ type:[1,2,3],
 
         if (this.namingType === 'camelCase') {
           originStr = originStr.replace(/\_(\w)/g, (_, letter) => letter.toUpperCase())
-        } else if(this.namingType === 'underscore'){
+        } else if (this.namingType === 'underscore') {
           originStr = originStr.replace(/([A-Z])/g, '_$1').toLowerCase()
         }
 
@@ -543,9 +554,9 @@ type:[1,2,3],
             }
             if (this.strictJSON) {
               line = line
-              .replace(/: '([^']*)'/, `: "$1"`)
-              .replace(/'([^']*)': /, `"$1": `)
-              .replace(/([a-zA-Z0-9_]+): /, `"$1": `)
+                .replace(/: '([^']*)'/, `: "$1"`)
+                .replace(/'([^']*)': /, `"$1": `)
+                .replace(/([a-zA-Z0-9_]+): /, `"$1": `)
             }
             if (this.withoutRemark) {
               return line.split(' //')[0] // 去除 js_beautify 后保留的备注信息
@@ -622,6 +633,13 @@ type:[1,2,3],
       }
     },
   })
+
+  // 添加 postMessage 事件，实现 iframe 父级控制
+  window.addEventListener('message', (event) => {
+    console.log('receiveMessage', event);
+    const actionStr = event.data;
+    eval(actionStr)
+  });
 </script>
 
 </html>
