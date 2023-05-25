@@ -29,6 +29,10 @@
       padding: 10px 50px 0;
     }
 
+    .iframe-mode {
+      padding: 0 !important;
+    }
+
     .p-action {
       margin: 20px auto;
       max-width: 1100px;
@@ -103,6 +107,10 @@
       height: calc(100vh - 200px);
     }
 
+    .iframe-mode .p-input-container {
+      height: calc(100vh - 100px) !important;
+    }
+
     .p-input-container .line {
       position: relative;
       vertical-align: top;
@@ -169,6 +177,10 @@
       text-align: right;
     }
 
+    .iframe-mode .tool-box {
+      top: 10px;
+    }
+
     .btn {
       display: inline-block;
       padding: 4px 8px;
@@ -194,13 +206,18 @@
     .tool-box-left {
       position: absolute;
       top: 10px;
-      left: calc(50% - 132px);
+      left: 16px;
       right: unset;
+      text-align: left;
     }
 
     .deep {
       font-size: 20px;
       font-weight: bold;
+    }
+
+    .iframe-mode .deep {
+      display: inline-block;
     }
 
     .line-item {
@@ -259,7 +276,7 @@
       工具链接：https://blog.luckly-mjw.cn/tool-show/json-remark-parse/index.html
     </h1>
   </div>
-  <section id="app" v-cloak="" :style="{ padding: iframeMode ? 0 : '10px 50px 0' }">
+  <section id="app" v-cloak="" :class="{'iframe-mode': iframeMode }">
 
     <!--顶部操作提示-->
     <template v-if="!iframeMode">
@@ -277,7 +294,7 @@
     </template>
 
     <!--文件载入-->
-    <section class="p-input-container" :style="{height: `calc(100vh - ${ iframeMode ? 100 : 200}px)`}">
+    <section class="p-input-container">
       <template v-if="!onlyRead">
         <textarea v-model="sourceStr" class="textarea-box" :placeholder="testStr"></textarea>
         <div class="tool-box-left">
