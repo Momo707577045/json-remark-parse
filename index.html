@@ -163,7 +163,7 @@
 
     .tool-box {
       position: absolute;
-      top: 10px;
+      top: -24px;
       right: 20px;
       text-align: right;
     }
@@ -181,6 +181,12 @@
       transition: 0.3s all;
     }
 
+    .tool-box .deep i {
+      display: inline-block;
+      margin-left: 4px;
+      margin-bottom: 4px;
+    }
+
     .tool-box i:hover,
     .tool-box .active {
       opacity: 1;
@@ -191,6 +197,10 @@
       top: 10px;
       left: calc(50% - 132px);
       right: unset;
+    }
+
+    .line-item {
+      user-select: none;
     }
 
     .line-item .line-num-text,
@@ -207,9 +217,10 @@
     .line-item .text {
       padding-left: 16px;
       white-space: pre-wrap;
+      user-select: text;
     }
 
-    .arrow {
+    .line-item .arrow {
       position: absolute;
       margin-left: 0;
       display: inline-block;
@@ -224,7 +235,7 @@
       border-color: transparent transparent transparent #666666;
     }
 
-    .arrow-fold {
+    .line-item .arrow-fold {
       transform: rotate(0);
     }
 
@@ -271,7 +282,7 @@
       <div class="result-box">
         <div class="line-container">
           <div class="line-item" v-for="(line, lineNum) in resultStrLine" v-if="!resultStrLineStatus[lineNum].isHide">
-            <div class="line-num-text">{{ lineNum }}</div>
+            <div class="line-num-text">{{ lineNum + 1 }}</div>
             <div class="arrow" :class="{'arrow-fold': resultStrLineStatus[lineNum].isFold }"
               v-if="resultStrLineStatus[lineNum].isToggle" @click="toggleFold(lineNum)"></div>
             <div class="text">{{ line }}{{ resultStrLineStatus[lineNum].isFold ? ' ...' : '' }}</div>
@@ -279,8 +290,12 @@
         </div>
       </div>
       <div class="tool-box">
+        <div class="deep">
+          显示最大深度: <i v-for="deepIndex in maxDeepNum" :class="{active: deepNum === deepIndex}"
+            @click="setDeep(deepIndex)">{{deepIndex}}</i>
+        </div>
         <i class="without-remark" :class="{active:onlyRead}" @click="onlyRead=!onlyRead">只读</i>
-        <i class="withJSDoc" :class="{active:withJSDoc}" @click="withJSDoc=!withJSDoc">JSDoc</i>
+        <!-- <i class="withJSDoc" :class="{active:withJSDoc}" @click="withJSDoc=!withJSDoc">JSDoc</i> -->
         <i class="indent" :class="{active:indent}" @click="indent=!indent">2缩进</i>
         <i class="strictJSON" :class="{active:strictJSON}" @click="strictJSON=!strictJSON">双引号</i>
         <i class="namingType" :class="{active:namingType !== 'none'}" @click="changeNaming">{{ namingType ===
@@ -456,7 +471,9 @@
         // tips: '带备注的 JSON 重排版工具，左源码，右结果',
         tips: 'tri 查询结果格式化',
         iframeMode: window.parent !== window, // 是否使用 iframe 简洁模式
-        timeouter: -1,
+        timer: -1,
+        deepNum: 0, // 当前显示最大深度，快捷折叠
+        maxDeepNum: 0, // 最大显示深度，快捷折叠
         schemaJSON: false, // 是否待解析的是 schemaJSON 数据
         indent: localStorage.getItem('indent') === 'true', // 是否2缩进
         namingType: localStorage.getItem('namingType') || 'none', // 命名方式，none 不变，camelCase 驼峰命名，underscore 下划线命名
@@ -468,7 +485,6 @@
         onlyRead: localStorage.getItem('onlyRead') === 'true' || window.parent !== window, // 只读
         resultStrLine: [], // 结果行
         resultStrLineStatus: [], // 结果行状态，deep 当前在第几层级，isFold 是否折叠中
-        resultStrFoldObj: {}, // 以行为 key 的折叠对象，text: 展示信息，form：从哪一行开始折叠，to：隐藏到哪一行
         sourceStr: '', // 源码字符串
         testStr: `
        {
@@ -684,13 +700,42 @@ type:[1,2,3],
 
       // 重排版后处理
       getParseJson(originStr) {
+        let deepNum = 0;
         this.resultStrLine = this.parseJSON(originStr).split('\n')
-        this.resultStrLineStatus = this.resultStrLine.map((line) => {
-          return {
-            deepNum: 1, // 当前层级深度
-            isFold: false, // 当前行是否被隐藏
-            isHide: false, // 当前行是否被隐藏
-            isToggle: /[\[{]/.test(line), // 当前行是否是一个折叠
+        if (this.resultStrLineStatus.length !== this.resultStrLine.length) {
+          const startReg = /[\[{]/
+          const endReg = /[\]}]/
+          this.resultStrLineStatus = this.resultStrLine.map((currentLine, currentLineIndex) => {
+            // 计算最大深度
+            if (startReg.test(currentLine)) {
+              deepNum++;
+              this.deepNum = this.maxDeepNum = Math.max(deepNum, this.maxDeepNum)
+            } else if (endReg.test(currentLine)) {
+              deepNum--;
+            }
+
+            return {
+              deepNum: endReg.test(currentLine) ? deepNum + 1 : deepNum, // 当前层级深度
+              isFold: false, // 当前行是否被隐藏
+              isHide: false, // 当前行是否被隐藏
+              isToggle: /[\[{]/.test(currentLine), // 当前行是否是一个折叠
+            }
+          })
+        }
+      },
+
+      setDeep(deepNum) {
+        this.deepNum = deepNum;
+        this.resultStrLineStatus.forEach((status, index) => {
+          if (this.deepNum < status.deepNum) {
+            status.isHide = true
+            status.isFold = status.isToggle
+            if (status.isFold && this.deepNum + 1 === status.deepNum) {
+              status.isHide = false
+            }
+          } else {
+            status.isHide = false
+            status.isFold = false
           }
         })
       },
@@ -727,9 +772,9 @@ type:[1,2,3],
 
       // 拷贝结果
       copy() {
-        clearTimeout(this.timeouter)
+        clearTimeout(this.timer)
         this.tips = `复制成功`
-        this.timeouter = setTimeout(() => { this.tips = `带备注的 JSON 重排版工具，左源码，右结果` }, 1000)
+        this.timer = setTimeout(() => { this.tips = `带备注的 JSON 重排版工具，左源码，右结果` }, 1000)
         if (!document.queryCommandSupported('copy')) {
           return false
         }
