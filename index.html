@@ -725,6 +725,8 @@ type:[1,2,3],
         let deepNum = 0;
         this.resultStrLine = this.parseJSON(originStr).split('\n')
         if (this.resultStrLineStatus.length !== this.resultStrLine.length) {
+          this.deepNum = 0
+          this.maxDeepNum = 0
           const startReg = /[\[{]/
           const endReg = /[\]}]/
           this.resultStrLineStatus = this.resultStrLine.map((currentLine, currentLineIndex) => {
