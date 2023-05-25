@@ -139,25 +139,15 @@
     }
 
     .result-box {
-      padding-left: 40px !important;
       display: block;
       border: 1px solid #bbbbbb;
     }
 
-    .result-box textarea {
-      height: 100%;
+    .line-container {
       width: 100%;
-      margin: 0;
-      padding: 0;
-      border: 0;
-      line-height: 16px;
-    }
-
-    .line-num-container {
-      position: absolute;
-      left: 4px;
-      text-align: right;
+      text-align: left;
       font-size: 12px;
+      white-space: normal;
     }
 
     .line-num {
@@ -178,7 +168,7 @@
       text-align: right;
     }
 
-    i {
+    .tool-box i {
       display: inline-block;
       padding: 4px 8px;
       font-size: 14px;
@@ -191,8 +181,8 @@
       transition: 0.3s all;
     }
 
-    i:hover,
-    .active {
+    .tool-box i:hover,
+    .tool-box .active {
       opacity: 1;
     }
 
@@ -201,6 +191,45 @@
       top: 10px;
       left: calc(50% - 132px);
       right: unset;
+    }
+
+    .line-item .line-num-text,
+    .line-item .arrow,
+    .line-item .text {
+      display: inline-block;
+    }
+
+    .line-item .line-num-text {
+      width: 30px;
+      text-align: right;
+    }
+
+    .line-item .text {
+      padding-left: 16px;
+      white-space: pre-wrap;
+    }
+
+    .arrow {
+      position: absolute;
+      margin-left: 0;
+      display: inline-block;
+      width: 0;
+      height: 0;
+      opacity: 1;
+      cursor: pointer;
+      transition: all 0.3s;
+      transform: rotate(90deg);
+      border-style: solid;
+      border-width: 5px 0 5px 10px;
+      border-color: transparent transparent transparent #666666;
+    }
+
+    .arrow-fold {
+      transform: rotate(0);
+    }
+
+    .arrow:hover {
+      opacity: 0.8;
     }
   </style>
 </head>
@@ -240,10 +269,12 @@
         <div class="line"></div>
       </template>
       <div class="result-box">
-        <textarea v-model="resultStr" readonly></textarea>
-        <div class="line-num-container">
-          <div class="line-num" v-for="(line, lineNum) in resultStr.split('\n')">
+        <div class="line-container">
+          <div class="line-item" v-for="(line, lineNum) in resultStrLine" v-if="!resultStrLineStatus[lineNum].isHide">
             <div class="line-num-text">{{ lineNum }}</div>
+            <div class="arrow" :class="{'arrow-fold': resultStrLineStatus[lineNum].isFold }"
+              v-if="resultStrLineStatus[lineNum].isToggle" @click="toggleFold(lineNum)"></div>
+            <div class="text">{{ line }}{{ resultStrLineStatus[lineNum].isFold ? ' ...' : '' }}</div>
           </div>
         </div>
       </div>
@@ -275,7 +306,6 @@
 <script src="./beautify.js"></script>
 <script src="https://upyun.luckly-mjw.cn/lib/vue.js"></script>
 <script>
-  console.log('parent', window.parent, !!window.parent)
   document.getElementById('loading') && document.getElementById('loading').remove()
 
   // 首字母大写
@@ -424,7 +454,7 @@
     data() {
       return {
         // tips: '带备注的 JSON 重排版工具，左源码，右结果',
-        tips: 'tri 结果格式化',
+        tips: 'tri 查询结果格式化',
         iframeMode: window.parent !== window, // 是否使用 iframe 简洁模式
         timeouter: -1,
         schemaJSON: false, // 是否待解析的是 schemaJSON 数据
@@ -436,8 +466,10 @@
         withoutRemark: localStorage.getItem('withoutRemark') === 'true', // 是否去除备注信息
         strictJSON: localStorage.getItem('strictJSON') === 'true', // 是否严格模式JSON
         onlyRead: localStorage.getItem('onlyRead') === 'true' || window.parent !== window, // 只读
+        resultStrLine: [], // 结果行
+        resultStrLineStatus: [], // 结果行状态，deep 当前在第几层级，isFold 是否折叠中
+        resultStrFoldObj: {}, // 以行为 key 的折叠对象，text: 展示信息，form：从哪一行开始折叠，to：隐藏到哪一行
         sourceStr: '', // 源码字符串
-        resultStr: '', // 结果字符串
         testStr: `
        {
           "code": 200,
@@ -472,47 +504,47 @@ type:[1,2,3],
 
     watch: {
       sourceStr: function (newValue) {
-        this.resultStr = this.parseJSON(newValue)
+        this.getParseJson(newValue)
       },
       schemaJSON: function () {
-        this.resultStr = this.parseJSON(this.sourceStr)
+        this.getParseJson(this.sourceStr)
       },
       namingType: function (newValue) {
         localStorage.setItem('namingType', newValue)
-        this.resultStr = this.parseJSON(this.sourceStr)
+        this.getParseJson(this.sourceStr)
       },
       withJSDoc: function (newValue) {
         localStorage.setItem('withJSDoc', newValue)
-        this.resultStr = this.parseJSON(this.sourceStr)
+        this.getParseJson(this.sourceStr)
       },
       indent: function (newValue) {
         localStorage.setItem('indent', newValue)
-        this.resultStr = this.parseJSON(this.sourceStr)
+        this.getParseJson(this.sourceStr)
       },
       alignRemark: function (newValue) {
         localStorage.setItem('alignRemark', newValue)
-        this.resultStr = this.parseJSON(this.sourceStr)
+        this.getParseJson(this.sourceStr)
       },
       withoutRemark: function (newValue) {
         localStorage.setItem('withoutRemark', newValue)
-        this.resultStr = this.parseJSON(this.sourceStr)
+        this.getParseJson(this.sourceStr)
       },
       withoutValue: function (newValue) {
         localStorage.setItem('withoutValue', newValue)
-        this.resultStr = this.parseJSON(this.sourceStr)
+        this.getParseJson(this.sourceStr)
       },
       onlyRead: function (newValue) {
         localStorage.setItem('onlyRead', newValue)
-        this.resultStr = this.parseJSON(this.sourceStr)
+        this.getParseJson(this.sourceStr)
       },
       strictJSON: function (newValue) {
         localStorage.setItem('strictJSON', newValue)
-        this.resultStr = this.parseJSON(this.sourceStr)
+        this.getParseJson(this.sourceStr)
       },
     },
 
     mounted() {
-      this.resultStr = this.parseJSON(this.testStr)
+      this.getParseJson(this.testStr)
 
     },
 
@@ -554,7 +586,8 @@ type:[1,2,3],
 
         try {
           const _originStr = eval(`(function(){ return (${originStr})})()`) // 去除了备注后的对象
-          let jsonStr = js_beautify(originStr, { indent_size: this.indent ? 2 : 4 }) // 为了解决 JSON.stringify 后，数组被强制换行，及单独一行的备注，信息丢失问题，使用了 js_beautify 库
+          // let jsonStr = js_beautify(originStr, { indent_size: this.indent ? 2 : 4 }) // 为了解决 JSON.stringify 后，数组被强制换行，及单独一行的备注，信息丢失问题，使用了 js_beautify 库
+          let jsonStr = JSON.stringify(_originStr, null, this.indent ? 2 : 4)
           let remarkObj = {} // 备注信息
           let originStrLine = originStr.split('\n') // 初始数据的每一行
           let jsonStrLine = jsonStr.split('\n') // 解析后的数据
@@ -649,6 +682,49 @@ type:[1,2,3],
         }
       },
 
+      // 重排版后处理
+      getParseJson(originStr) {
+        this.resultStrLine = this.parseJSON(originStr).split('\n')
+        this.resultStrLineStatus = this.resultStrLine.map((line) => {
+          return {
+            deepNum: 1, // 当前层级深度
+            isFold: false, // 当前行是否被隐藏
+            isHide: false, // 当前行是否被隐藏
+            isToggle: /[\[{]/.test(line), // 当前行是否是一个折叠
+          }
+        })
+      },
+
+      // 折叠
+      toggleFold(lineNum) {
+        this.resultStrLineStatus[lineNum].isFold = !this.resultStrLineStatus[lineNum].isFold;
+
+        // 重新计算各行的隐藏情况
+        let stackNum = 0;
+        let isHide = false; // 是否需要隐藏
+        const startReg = /[\[{]/
+        const endReg = /[\]}]/
+        this.resultStrLine.forEach((currentLine, currentLineIndex) => {
+          this.resultStrLineStatus[currentLineIndex].isHide = isHide
+          if (!isHide && this.resultStrLineStatus[currentLineIndex].isFold) {
+            isHide = true
+            return
+          }
+          if (!isHide || startReg.test(currentLine) && endReg.test(currentLine)) {
+            return;
+          }
+          if (startReg.test(currentLine) && isHide) {
+            stackNum++;
+          } else if (endReg.test(currentLine) && isHide) {
+            stackNum--;
+            if (stackNum === -1) {
+              stackNum = 0
+              isHide = false
+            }
+          }
+        })
+      },
+
       // 拷贝结果
       copy() {
         clearTimeout(this.timeouter)
@@ -660,7 +736,7 @@ type:[1,2,3],
 
         let $input = document.createElement('textarea')
         $input.style.opacity = '0'
-        $input.value = this.resultStr
+        $input.value = this.resultStrLine.join('\n')
         document.body.appendChild($input)
         $input.select()
 
