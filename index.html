@@ -127,6 +127,7 @@
       color: #333333;
       vertical-align: text-top;
       font-size: 14px;
+      line-height: 16px;
       overflow: auto;
       border-radius: 4px;
       font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
@@ -138,8 +139,36 @@
     }
 
     .result-box {
+      padding-left: 40px !important;
       display: block;
       border: 1px solid #bbbbbb;
+    }
+
+    .result-box textarea {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      line-height: 16px;
+    }
+
+    .line-num-container {
+      position: absolute;
+      left: 4px;
+      text-align: right;
+      font-size: 12px;
+    }
+
+    .line-num {
+      margin: 0;
+      padding: 0;
+      line-height: 16px;
+      height: 16px;
+    }
+
+    .line-num-text {
+      line-height: 16px;
     }
 
     .tool-box {
@@ -210,7 +239,14 @@
         <i class="schemaJSON" :class="{active:schemaJSON}" @click="schemaJSON=!schemaJSON">schemaJSON</i>
         <div class="line"></div>
       </template>
-      <textarea class="result-box" v-model="resultStr" readonly></textarea>
+      <div class="result-box">
+        <textarea v-model="resultStr" readonly></textarea>
+        <div class="line-num-container">
+          <div class="line-num" v-for="(line, lineNum) in resultStr.split('\n')">
+            <div class="line-num-text">{{ lineNum }}</div>
+          </div>
+        </div>
+      </div>
       <div class="tool-box">
         <i class="without-remark" :class="{active:onlyRead}" @click="onlyRead=!onlyRead">只读</i>
         <i class="withJSDoc" :class="{active:withJSDoc}" @click="withJSDoc=!withJSDoc">JSDoc</i>
@@ -387,7 +423,8 @@
 
     data() {
       return {
-        tips: '带备注的 JSON 重排版工具，左源码，右结果',
+        // tips: '带备注的 JSON 重排版工具，左源码，右结果',
+        tips: 'tri 结果格式化',
         iframeMode: window.parent !== window, // 是否使用 iframe 简洁模式
         timeouter: -1,
         schemaJSON: false, // 是否待解析的是 schemaJSON 数据
@@ -398,7 +435,7 @@
         withoutValue: localStorage.getItem('withoutValue') === 'true', // 是否去除值
         withoutRemark: localStorage.getItem('withoutRemark') === 'true', // 是否去除备注信息
         strictJSON: localStorage.getItem('strictJSON') === 'true', // 是否严格模式JSON
-        onlyRead: localStorage.getItem('onlyRead') === 'true' || !!window.parent, // 只读
+        onlyRead: localStorage.getItem('onlyRead') === 'true' || window.parent !== window, // 只读
         sourceStr: '', // 源码字符串
         resultStr: '', // 结果字符串
         testStr: `
