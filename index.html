@@ -220,10 +220,6 @@
       display: inline-block;
     }
 
-    .line-item {
-      user-select: none;
-    }
-
     .line-item .line-num-text,
     .line-item .arrow,
     .line-item .text {
@@ -233,6 +229,7 @@
     .line-item .line-num-text {
       width: 30px;
       text-align: right;
+      user-select: none;
     }
 
     .line-item .text {
@@ -345,7 +342,8 @@
 <script src="https://upyun.luckly-mjw.cn/lib/vue.js"></script>
 <script>
   document.getElementById('loading') && document.getElementById('loading').remove()
-
+  const startReg = /[\[{]/
+  const endReg = /[\]}]/
   // 首字母大写
   function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1)
@@ -727,11 +725,11 @@ type:[1,2,3],
         if (this.resultStrLineStatus.length !== this.resultStrLine.length) {
           this.deepNum = 0
           this.maxDeepNum = 0
-          const startReg = /[\[{]/
-          const endReg = /[\]}]/
           this.resultStrLineStatus = this.resultStrLine.map((currentLine, currentLineIndex) => {
             // 计算最大深度
-            if (startReg.test(currentLine)) {
+            if (startReg.test(currentLine) && endReg.test(currentLine)) {
+              
+            } else if (startReg.test(currentLine)) {
               deepNum++;
               this.deepNum = this.maxDeepNum = Math.max(deepNum, this.maxDeepNum)
             } else if (endReg.test(currentLine)) {
@@ -771,8 +769,6 @@ type:[1,2,3],
         // 重新计算各行的隐藏情况
         let stackNum = 0;
         let isHide = false; // 是否需要隐藏
-        const startReg = /[\[{]/
-        const endReg = /[\]}]/
         this.resultStrLine.forEach((currentLine, currentLineIndex) => {
           this.resultStrLineStatus[currentLineIndex].isHide = isHide
           if (!isHide && this.resultStrLineStatus[currentLineIndex].isFold) {
