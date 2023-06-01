@@ -307,8 +307,7 @@
           <div class="line-item" v-for="(line, lineNum) in resultStrLine" v-if="!resultStrLineStatus[lineNum].isHide">
             <div class="line-num-text">{{ lineNum + 1 }}</div>
             <div class="arrow" :class="{'arrow-fold': resultStrLineStatus[lineNum].isFold }" v-if="resultStrLineStatus[lineNum].isToggle" @click="toggleFold(lineNum)"></div>
-            <div class="text">{{ line }}{{ resultStrLineStatus[lineNum].isFold ? ' ...' : '' }}<span style="color:#2980b9">{{ showPath && resultStrLineStatus[lineNum].path ? ` 【path】${resultStrLineStatus[lineNum].path}` : ''
-              }}</span></div>
+            <div class="text">{{ line }}{{ resultStrLineStatus[lineNum].isFold ? ' ...' : '' }}<span style="color:#2980b9">{{ showPath && resultStrLineStatus[lineNum].path ? `【path】${resultStrLineStatus[lineNum].path}` : ''}}</span></div>
           </div>
         </div>
       </div>
@@ -319,7 +318,6 @@
         <i class="btn" :class="{active:onlyRead}" @click="onlyRead=!onlyRead">只读</i>
         <!-- <i class="withJSDoc" :class="{active:withJSDoc}" @click="withJSDoc=!withJSDoc">JSDoc</i> -->
         <i class="btn" :class="{active:indent}" @click="indent=!indent">2缩进</i>
-        <i class="btn" :class="{active:strictJSON}" @click="strictJSON=!strictJSON">双引号</i>
         <i class="btn" :class="{active:namingType !== 'none'}" @click="changeNaming">{{ namingType ===
           'camelCase' ? '驼峰' : namingType === 'underscore' ? '下划线' : '命名' }}</i>
         <i class="btn" :class="{active:alignRemark}" @click="alignRemark=!alignRemark">对齐备注</i>
@@ -504,7 +502,6 @@
         alignRemark: localStorage.getItem('alignRemark') === 'true', // 是否对齐备注
         withoutValue: localStorage.getItem('withoutValue') === 'true', // 是否去除值
         withoutRemark: localStorage.getItem('withoutRemark') === 'true', // 是否去除备注信息
-        strictJSON: localStorage.getItem('strictJSON') === 'true', // 是否严格模式JSON
         showPath: localStorage.getItem('showPath') === 'true', // 是否显示参数路径
         onlyRead: localStorage.getItem('onlyRead') === 'true' || window.parent !== window, // 只读
         resultStrLine: [], // 结果行
@@ -575,10 +572,6 @@ type:[1,2,3],
       },
       onlyRead: function (newValue) {
         localStorage.setItem('onlyRead', newValue)
-        this.getParseJson(this.sourceStr)
-      },
-      strictJSON: function (newValue) {
-        localStorage.setItem('strictJSON', newValue)
         this.getParseJson(this.sourceStr)
       },
       showPath: function (newValue) {
@@ -665,12 +658,6 @@ type:[1,2,3],
             if (this.withoutValue) {
               line = line.replace(/: "[^"]+"/, ': ""').replace(/: '[^']+'/, ": ''")
             }
-            if (this.strictJSON) {
-              line = line
-                .replace(/: '([^']*)'/, `: "$1"`)
-                .replace(/'([^']*)': /, `"$1": `)
-                .replace(/([a-zA-Z0-9_]+): /, `"$1": `)
-            }
             if (this.withoutRemark) {
               return line.split(' //')[0] // 去除 js_beautify 后保留的备注信息
             }
@@ -745,11 +732,12 @@ type:[1,2,3],
 
             } else if (startReg.test(content)) {
               if (key) {
-                keyTrace.push(key)
                 if (/\[$/.test(content)) {
-                  keyTrace.push('[]')
+                  keyTrace.push(`${key}[]`)
                 } else if (/\{$/.test(content)) {
-                  keyTrace.push('.')
+                  keyTrace.push(`${key}.`)
+                } else {
+                  keyTrace.push(key)
                 }
               } else if (content.includes('[')) {
                 keyTrace.push('[]')
