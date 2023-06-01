@@ -741,6 +741,8 @@ type:[1,2,3],
                 }
               } else if (content.includes('[')) {
                 keyTrace.push('[]')
+              } else {
+                keyTrace.push('')
               }
               deepNum++;
               this.deepNum = this.maxDeepNum = Math.max(deepNum, this.maxDeepNum)
