@@ -3,8 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-    content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <meta name="author" content="毛静文,Momo">
   <meta name="keywords" content="带备注的 JSON 排班工具,毛静文的博客,Momo's Blog">
@@ -307,16 +306,15 @@
         <div class="line-container">
           <div class="line-item" v-for="(line, lineNum) in resultStrLine" v-if="!resultStrLineStatus[lineNum].isHide">
             <div class="line-num-text">{{ lineNum + 1 }}</div>
-            <div class="arrow" :class="{'arrow-fold': resultStrLineStatus[lineNum].isFold }"
-              v-if="resultStrLineStatus[lineNum].isToggle" @click="toggleFold(lineNum)"></div>
-            <div class="text">{{ line }}{{ resultStrLineStatus[lineNum].isFold ? ' ...' : '' }}</div>
+            <div class="arrow" :class="{'arrow-fold': resultStrLineStatus[lineNum].isFold }" v-if="resultStrLineStatus[lineNum].isToggle" @click="toggleFold(lineNum)"></div>
+            <div class="text">{{ line }}{{ resultStrLineStatus[lineNum].isFold ? ' ...' : '' }}<span style="color:#2980b9">{{ showPath && resultStrLineStatus[lineNum].path ? ` 【path】${resultStrLineStatus[lineNum].path}` : ''
+              }}</span></div>
           </div>
         </div>
       </div>
       <div class="tool-box">
         <div class="deep">
-          显示最大深度: <i v-for="deepIndex in maxDeepNum" class="btn" :class="{active: deepNum === deepIndex}"
-            @click="setDeep(deepIndex)">{{deepIndex}}</i>
+          显示最大深度: <i v-for="deepIndex in maxDeepNum" class="btn" :class="{active: deepNum === deepIndex}" @click="setDeep(deepIndex)">{{deepIndex}}</i>
         </div>
         <i class="btn" :class="{active:onlyRead}" @click="onlyRead=!onlyRead">只读</i>
         <!-- <i class="withJSDoc" :class="{active:withJSDoc}" @click="withJSDoc=!withJSDoc">JSDoc</i> -->
@@ -327,6 +325,7 @@
         <i class="btn" :class="{active:alignRemark}" @click="alignRemark=!alignRemark">对齐备注</i>
         <i class="btn" :class="{active:withoutValue}" @click="withoutValue=!withoutValue">去值</i>
         <i class="btn" :class="{active:withoutRemark}" @click="withoutRemark=!withoutRemark">去备注</i>
+        <i class="btn" :class="{active:showPath}" @click="showPath=!showPath">显示路径</i>
         <i class="btn" @click="copy">复制</i>
       </div>
     </section>
@@ -506,6 +505,7 @@
         withoutValue: localStorage.getItem('withoutValue') === 'true', // 是否去除值
         withoutRemark: localStorage.getItem('withoutRemark') === 'true', // 是否去除备注信息
         strictJSON: localStorage.getItem('strictJSON') === 'true', // 是否严格模式JSON
+        showPath: localStorage.getItem('showPath') === 'true', // 是否显示参数路径
         onlyRead: localStorage.getItem('onlyRead') === 'true' || window.parent !== window, // 只读
         resultStrLine: [], // 结果行
         resultStrLineStatus: [], // 结果行状态，deep 当前在第几层级，isFold 是否折叠中
@@ -580,6 +580,9 @@ type:[1,2,3],
       strictJSON: function (newValue) {
         localStorage.setItem('strictJSON', newValue)
         this.getParseJson(this.sourceStr)
+      },
+      showPath: function (newValue) {
+        localStorage.setItem('showPath', newValue)
       },
     },
 
@@ -727,24 +730,43 @@ type:[1,2,3],
         let deepNum = 0;
         this.resultStrLine = this.parseJSON(originStr).split('\n')
         if (this.resultStrLineStatus.length !== this.resultStrLine.length) {
+          const keyTrace = []; // 当前层级的栈
           this.deepNum = 0
           this.maxDeepNum = 0
           this.resultStrLineStatus = this.resultStrLine.map((currentLine, currentLineIndex) => {
+            const content = currentLine.split(' //')[0]
+            let key = ''
+            if (content.includes(':')) {
+              key = (content.split(':')[0] || '').replace(/["']/ig, '').trim()
+            }
+            let path = key ? keyTrace.join('') + key : '';
             // 计算最大深度
-            if (/[\[{]/.test(currentLine) && endReg.test(currentLine)) {
+            if (/[\[{]/.test(content) && endReg.test(content)) {
 
-            } else if (startReg.test(currentLine)) {
+            } else if (startReg.test(content)) {
+              if (key) {
+                keyTrace.push(key)
+                if (/\[$/.test(content)) {
+                  keyTrace.push('[]')
+                } else if (/\{$/.test(content)) {
+                  keyTrace.push('.')
+                }
+              } else if (content.includes('[')) {
+                keyTrace.push('[]')
+              }
               deepNum++;
               this.deepNum = this.maxDeepNum = Math.max(deepNum, this.maxDeepNum)
-            } else if (endReg.test(currentLine)) {
+            } else if (endReg.test(content)) {
               deepNum--;
+              keyTrace.pop()
             }
 
             return {
-              deepNum: endReg.test(currentLine) ? deepNum + 1 : deepNum, // 当前层级深度
+              path, // 当前参数全路径
+              deepNum: endReg.test(content) ? deepNum + 1 : deepNum, // 当前层级深度
               isFold: false, // 当前行是否被隐藏
               isHide: false, // 当前行是否被隐藏
-              isToggle: startReg.test(currentLine) && !endReg.test(currentLine), // 当前行是否是一个折叠
+              isToggle: startReg.test(content) && !endReg.test(content), // 当前行是否是一个折叠
             }
           })
         }
