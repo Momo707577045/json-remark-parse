@@ -346,8 +346,8 @@
 <script src="https://upyun.luckly-mjw.cn/lib/vue.js"></script>
 <script>
   document.getElementById('loading') && document.getElementById('loading').remove()
-  const startReg = /[\[{]/
-  const endReg = /[\]}]/
+  const startReg = /[\[{]$/
+  const endReg = /[\]}],?$/
   // 首字母大写
   function capitalizeFirstLetter(str) {
     return str.charAt(0).toUpperCase() + str.slice(1)
@@ -731,8 +731,8 @@ type:[1,2,3],
           this.maxDeepNum = 0
           this.resultStrLineStatus = this.resultStrLine.map((currentLine, currentLineIndex) => {
             // 计算最大深度
-            if (startReg.test(currentLine) && endReg.test(currentLine)) {
-              
+            if (/[\[{]/.test(currentLine) && endReg.test(currentLine)) {
+
             } else if (startReg.test(currentLine)) {
               deepNum++;
               this.deepNum = this.maxDeepNum = Math.max(deepNum, this.maxDeepNum)
@@ -816,12 +816,13 @@ type:[1,2,3],
     },
   })
 
-  // 添加 postMessage 事件，实现 iframe 父级控制
-  window.addEventListener('message', (event) => {
-    console.log('receiveMessage', event);
-    const actionStr = event.data;
-    eval(actionStr)
-  });
+  if (window.parent !== window) {
+    // 添加 postMessage 事件，实现 iframe 父级控制
+    window.addEventListener('message', (event) => {
+      console.log('receiveMessage', event);
+      window.vueInstance.$data.sourceStr = event.data;
+    });
+  }
 </script>
 
 </html>

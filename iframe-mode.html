@@ -31,34 +31,32 @@
 
 <body>
   <!-- <iframe src="./index.html" id="$iframe"></iframe> -->
-  <iframe src="http://blog.luckly-mjw.cn/tool-show/json-remark-parse/index.html" id="$iframe"></iframe>
+  <iframe src="//blog.luckly-mjw.cn/tool-show/json-remark-parse/index.html" id="$iframe"></iframe>
 </body>
 <script>
   $iframe.onload = () => {
-    $iframe.contentWindow.postMessage(`
-    window.vueInstance.$data.sourceStr = \`
-    {
-    "code": 200,
-    'data': {
+    $iframe.contentWindow.postMessage(JSON.stringify({
+      "code": 200,
+      'data': {
         "page": {
-            "pageIndex": "1", // 第几页
-            "pageSize": "1", // 每页数据量
-            "itemSum": "1", // 项目总数
-            "pageSum": "1", // 总页数
+          "pageIndex": "1", // 第几页
+          "pageSize": "1", // 每页数据量
+          "itemSum": "1", // 项目总数
+          "pageSum": "1", // 总页数
         },
         type: [1, 2, 3],
         "list|1-9": [{
-            "phoneNum": "", // 手机号
-            "jobNum": "@natural(100000,999999)", // 工号
-            "identityCardUrl": "@image", // 身份证图片URL
-            "url": "http://baidu.com",
-            "identityCard": "", // 身份证号
-            "userName": "@cname", // 姓名
-            "sex|1": ["male", "female"], // 性别
-            "birthday": "1994-02-02" // 生日
+          "phoneNum": "", // 手机号
+          "jobNum": "@natural(100000,999999)", // 工号
+          "identityCardUrl": "@image", // 身份证图片URL
+          "url": "http://baidu.com",
+          "identityCard": "", // 身份证号
+          "userName": "@cname", // 姓名
+          "sex|1": ["male", "female"], // 性别
+          "birthday": "1994-02-02" // 生日
         }],
-    }
-}\``, '*');
+      }
+    }), '*');
   }
 </script>
 
