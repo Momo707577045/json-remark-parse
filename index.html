@@ -549,14 +549,14 @@ type:[1,2,3],
     watch: {
       sourceStr: function (newValue) {
         localStorage.setItem('sourceStr', newValue)
-        this.getParseJson(newValue)
+        this.getParseJson(newValue, true)
       },
       schemaJSON: function () {
-        this.getParseJson(this.sourceStr)
+        this.getParseJson(this.sourceStr, true)
       },
       namingType: function (newValue) {
         localStorage.setItem('namingType', newValue)
-        this.getParseJson(this.sourceStr)
+        this.getParseJson(this.sourceStr, true)
       },
       withJSDoc: function (newValue) {
         localStorage.setItem('withJSDoc', newValue)
@@ -580,7 +580,6 @@ type:[1,2,3],
       },
       onlyRead: function (newValue) {
         localStorage.setItem('onlyRead', newValue)
-        this.getParseJson(this.sourceStr)
       },
       showPath: function (newValue) {
         localStorage.setItem('showPath', newValue)
@@ -720,66 +719,68 @@ type:[1,2,3],
       },
 
       // 重排版后处理
-      getParseJson(originStr) {
-        let deepNum = 0;
+      getParseJson(originStr, resetStatus) {
         this.resultStrLine = this.parseJSON(originStr).split('\n')
-        const keyTrace = []; // 当前层级的栈
-        const arrayNum = []; // 各个数组个数
-        this.deepNum = 0
-        this.maxDeepNum = 0
-        this.resultStrLineStatus = this.resultStrLine.map((currentLine, currentLineIndex) => {
-          const content = currentLine.split(' //')[0]
-          let key = ''
-          if (content.includes(':')) {
-            key = (content.split(':')[0] || '').replace(/["']/ig, '').trim()
-          }
-          let tempArrayNum = [...arrayNum]
-          let path = ''
-          if (key) {
-            path = keyTrace.join('').replace(/\[\]/g, () => `[${tempArrayNum.shift()}]`)
-            path += path.substr(-1) === ']' ? `.${key}` : key
-          }
-          // 计算最大深度
-          if (/[\[{]/.test(content) && endReg.test(content)) {
-
-          } else if (startReg.test(content)) {
-            if (arrayNum.length && ['{', '['].includes(content.trim())) {
-              arrayNum[arrayNum.length - 1] += 1
+        if (resetStatus || this.resultStrLineStatus.length !== this.resultStrLine.length) {
+          const keyTrace = []; // 当前层级的栈
+          const arrayNum = []; // 各个数组个数
+          let deepNum = 0;
+          this.deepNum = 0
+          this.maxDeepNum = 0
+          this.resultStrLineStatus = this.resultStrLine.map((currentLine, currentLineIndex) => {
+            const content = currentLine.split(' //')[0]
+            let key = ''
+            if (content.includes(':')) {
+              key = (content.split(':')[0] || '').replace(/["']/ig, '').trim()
             }
-            if (/\[$/.test(content)) {
-              arrayNum.push(-1)
-            }
+            let tempArrayNum = [...arrayNum]
+            let path = ''
             if (key) {
-              if (/\[$/.test(content)) {
-                keyTrace.push(`${keyTrace.join('').substr(-1) === ']' ? '.' : ''}${key}[]`)
-              } else if (/\{$/.test(content)) {
-                keyTrace.push(`${keyTrace.join('').substr(-1) === ']' ? '.' : ''}${key}.`)
-              } else {
-                keyTrace.push(`${keyTrace.join('').substr(-1) === ']' ? '.' : ''}${key}`)
+              path = keyTrace.join('').replace(/\[\]/g, () => `[${tempArrayNum.shift()}]`)
+              path += path.substr(-1) === ']' ? `.${key}` : key
+            }
+            // 计算最大深度
+            if (/[\[{]/.test(content) && endReg.test(content)) {
+
+            } else if (startReg.test(content)) {
+              if (arrayNum.length && ['{', '['].includes(content.trim())) {
+                arrayNum[arrayNum.length - 1] += 1
               }
-            } else if (content.includes('[')) {
-              keyTrace.push('[]')
-            } else {
-              keyTrace.push('')
+              if (/\[$/.test(content)) {
+                arrayNum.push(-1)
+              }
+              if (key) {
+                if (/\[$/.test(content)) {
+                  keyTrace.push(`${keyTrace.join('').substr(-1) === ']' ? '.' : ''}${key}[]`)
+                } else if (/\{$/.test(content)) {
+                  keyTrace.push(`${keyTrace.join('').substr(-1) === ']' ? '.' : ''}${key}.`)
+                } else {
+                  keyTrace.push(`${keyTrace.join('').substr(-1) === ']' ? '.' : ''}${key}`)
+                }
+              } else if (content.includes('[')) {
+                keyTrace.push('[]')
+              } else {
+                keyTrace.push('')
+              }
+              deepNum++;
+              this.deepNum = this.maxDeepNum = Math.max(deepNum, this.maxDeepNum)
+            } else if (endReg.test(content)) {
+              if (/[\]],?$/.test(content)) {
+                arrayNum.pop()
+              }
+              deepNum--;
+              keyTrace.pop()
             }
-            deepNum++;
-            this.deepNum = this.maxDeepNum = Math.max(deepNum, this.maxDeepNum)
-          } else if (endReg.test(content)) {
-            if (/[\]],?$/.test(content)) {
-              arrayNum.pop()
+            console.log(JSON.stringify(arrayNum), content.trim(), deepNum);
+            return {
+              path, // 当前参数全路径
+              deepNum: !/[\[{]/.test(content) && endReg.test(content) ? deepNum + 1 : deepNum, // 当前层级深度
+              isFold: false, // 当前行是否被隐藏
+              isHide: false, // 当前行是否被隐藏
+              isToggle: startReg.test(content) && !endReg.test(content), // 当前行是否是一个折叠
             }
-            deepNum--;
-            keyTrace.pop()
-          }
-          console.log(JSON.stringify(arrayNum), content.trim(), deepNum);
-          return {
-            path, // 当前参数全路径
-            deepNum: !/[\[{]/.test(content) && endReg.test(content) ? deepNum + 1 : deepNum, // 当前层级深度
-            isFold: false, // 当前行是否被隐藏
-            isHide: false, // 当前行是否被隐藏
-            isToggle: startReg.test(content) && !endReg.test(content), // 当前行是否是一个折叠
-          }
-        })
+          })
+        }
       },
 
       setDeep(deepNum) {
