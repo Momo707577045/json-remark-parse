@@ -587,7 +587,9 @@ type:[1,2,3],
     },
 
     mounted() {
-      this.getParseJson(this.sourceStr || this.testStr)
+      this.getParseJson(this.sourceStr || this.testStr);
+      window.dispatchEvent(new Event('jsonRemarkParseLoaded')); // 抛出事件，告知引导页本页面加载完成
+      window.opener && window.opener.postMessage('jsonRemarkParseLoaded', '*');
     },
 
     methods: {
@@ -855,13 +857,16 @@ type:[1,2,3],
     },
   })
 
-  if (window.parent !== window) {
-    // 添加 postMessage 事件，实现 iframe 父级控制
-    window.addEventListener('message', (event) => {
-      console.log('receiveMessage', event);
+  // 添加 postMessage 事件，实现 iframe 父级控制
+  window.addEventListener('message', (event) => {
+    console.log('receiveMessage', event);
+    try {
+      JSON.parse(event.data)
       window.vueInstance.$data.sourceStr = event.data;
-    });
-  }
+    } catch (error) {
+      console.log(error);
+    }
+  });
 </script>
 
 </html>
