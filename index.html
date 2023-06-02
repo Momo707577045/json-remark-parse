@@ -729,21 +729,27 @@ type:[1,2,3],
           this.maxDeepNum = 0
           this.resultStrLineStatus = this.resultStrLine.map((currentLine, currentLineIndex) => {
             const content = currentLine.split(' //')[0]
+
             let key = ''
-            if (content.includes(':')) {
-              key = (content.split(':')[0] || '').replace(/["']/ig, '').trim()
-            }
-            let tempArrayNum = [...arrayNum]
             let path = ''
-            if (key) {
+            if (!['{', '[', '}', ']', '},', '],'].includes(content.trim())) {
+              if (arrayNum.length && !/[^\\]":/.test(content)) {
+                arrayNum[arrayNum.length - 1] += 1
+              }
+
+              let tempArrayNum = [...arrayNum]
+              key = (content.split(':')[0] || '').replace(/["']/ig, '').trim()
               path = keyTrace.join('').replace(/\[\]/g, () => `[${tempArrayNum.shift()}]`)
-              path += path.substr(-1) === ']' ? `.${key}` : key
+              if (/[^\\]":/.test(content)) {
+                path += path.substr(-1) === ']' ? `.${key}` : key
+              }
             }
             // 计算最大深度
             if (/[\[{]/.test(content) && endReg.test(content)) {
 
             } else if (startReg.test(content)) {
-              if (arrayNum.length && ['{', '['].includes(content.trim())) {
+              // if (arrayNum.length && (['{', '['].includes(content.trim()) || /[^\\":]/.test(content))) {
+              if (arrayNum.length && !/[^\\]":/.test(content.trim())) {
                 arrayNum[arrayNum.length - 1] += 1
               }
               if (/\[$/.test(content)) {
