@@ -3,8 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-    content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <meta name="author" content="毛静文,Momo">
   <meta name="keywords" content="带备注的 JSON 排班工具,毛静文的博客,Momo's Blog">
@@ -307,18 +306,15 @@
         <div class="line-container">
           <div class="line-item" v-for="(line, lineNum) in resultStrLine" v-if="!resultStrLineStatus[lineNum].isHide">
             <div class="line-num-text">{{ lineNum + 1 }}</div>
-            <div class="arrow" :class="{'arrow-fold': resultStrLineStatus[lineNum].isFold }"
-              v-if="resultStrLineStatus[lineNum].isToggle" @click="toggleFold(lineNum)"></div>
-            <div class="text">{{ line }}{{ resultStrLineStatus[lineNum].isFold ? ' ...' : '' }}<span
-                style="color:#2980b9">{{ showPath && resultStrLineStatus[lineNum].path ?
+            <div class="arrow" :class="{'arrow-fold': resultStrLineStatus[lineNum].isFold }" v-if="resultStrLineStatus[lineNum].isToggle" @click="toggleFold(lineNum)"></div>
+            <div class="text">{{ line }}{{ resultStrLineStatus[lineNum].isFold ? ' ...' : '' }}<span style="color:#2980b9">{{ showPath && resultStrLineStatus[lineNum].path ?
                 `【path】${resultStrLineStatus[lineNum].path}` : ''}}</span></div>
           </div>
         </div>
       </div>
       <div class="tool-box">
         <div class="deep">
-          显示最大深度: <i v-for="deepIndex in maxDeepNum" class="btn" :class="{active: deepNum === deepIndex}"
-            @click="setDeep(deepIndex)">{{deepIndex}}</i>
+          显示深度: <i v-for="deepIndex in maxDeepNum" class="btn" :class="{active: deepNum === deepIndex}" @click="setDeep(deepIndex)">{{deepIndex}}</i>
         </div>
         <i class="btn" :class="{active:onlyRead}" @click="onlyRead=!onlyRead">只读</i>
         <!-- <i class="withJSDoc" :class="{active:withJSDoc}" @click="withJSDoc=!withJSDoc">JSDoc</i> -->
@@ -748,13 +744,11 @@ type:[1,2,3],
             }
             if (key) {
               if (/\[$/.test(content)) {
-                keyTrace.push(`${key}[]`)
+                keyTrace.push(`${keyTrace.join('').substr(-1) === ']' ? '.' : ''}${key}[]`)
               } else if (/\{$/.test(content)) {
-                keyTrace.push(`${key}.`)
-              } else if (keyTrace.slice(-1)[0].includes(']')) {
-                keyTrace.push(`.${key}`)
+                keyTrace.push(`${keyTrace.join('').substr(-1) === ']' ? '.' : ''}${key}.`)
               } else {
-                keyTrace.push(key)
+                keyTrace.push(`${keyTrace.join('').substr(-1) === ']' ? '.' : ''}${key}`)
               }
             } else if (content.includes('[')) {
               keyTrace.push('[]')
