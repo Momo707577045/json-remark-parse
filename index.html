@@ -310,7 +310,7 @@
       </template>
       <div class="result-box">
         <div class="line-container">
-          <div class="line-item" v-for="(line, lineNum) in resultStrLine" v-if="!resultStrLineStatus[lineNum].isHide">
+          <div class="line-item" v-for="(line, lineNum) in resultStrLine" v-if="!resultStrLineStatus[lineNum].isHide" :key="line + lineNum">
             <div class="line-num-text">{{ lineNum + 1 }}</div>
             <div class="arrow" :class="{'arrow-fold': resultStrLineStatus[lineNum].isFold }" v-if="resultStrLineStatus[lineNum].isToggle" @click="toggleFold(lineNum)"></div>
             <div class="text">{{ line }}{{ resultStrLineStatus[lineNum].isFold ? ' ...' : '' }}<span class="json-path" @click="copy(resultStrLineStatus[lineNum].path)">{{ showPath && resultStrLineStatus[lineNum].path ?
@@ -771,11 +771,10 @@ type:[1,2,3],
             deepNum--;
             keyTrace.pop()
           }
-          console.log(JSON.stringify(arrayNum));
-
+          console.log(JSON.stringify(arrayNum), content.trim(), deepNum);
           return {
             path, // 当前参数全路径
-            deepNum: endReg.test(content) ? deepNum + 1 : deepNum, // 当前层级深度
+            deepNum: !/[\[{]/.test(content) && endReg.test(content) ? deepNum + 1 : deepNum, // 当前层级深度
             isFold: false, // 当前行是否被隐藏
             isHide: false, // 当前行是否被隐藏
             isToggle: startReg.test(content) && !endReg.test(content), // 当前行是否是一个折叠
@@ -812,7 +811,7 @@ type:[1,2,3],
             isHide = true
             return
           }
-          if (!isHide || startReg.test(currentLine) && endReg.test(currentLine)) {
+          if (!isHide || /[\[{]/.test(currentLine) && endReg.test(currentLine)) {
             return;
           }
           if (startReg.test(currentLine) && isHide) {
