@@ -737,10 +737,11 @@ type:[1,2,3],
           if (/[\[{]/.test(content) && endReg.test(content)) {
 
           } else if (startReg.test(content)) {
+            if (arrayNum.length && ['{', '['].includes(content.trim())) {
+              arrayNum[arrayNum.length - 1] += 1
+            }
             if (/\[$/.test(content)) {
               arrayNum.push(-1)
-            } else if (arrayNum.length && keyTrace.slice(-1)[0].includes('[]')) {
-              arrayNum[arrayNum.length - 1] += 1
             }
             if (key) {
               if (/\[$/.test(content)) {
