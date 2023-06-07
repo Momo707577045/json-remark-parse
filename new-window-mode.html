@@ -71,7 +71,14 @@
       window.addEventListener('message', function (event) {
         console.log('new message', event)
         if (event.data === 'jsonRemarkParseLoaded') {
-          $newWindow.postMessage($textarea.value, '*');
+          $newWindow.postMessage(JSON.stringify({
+            action: 'setTitle',
+            content: 'new-window-mode',
+          }), '*');
+          $newWindow.postMessage(JSON.stringify({
+            action: 'setSourceStr',
+            content: $textarea.value,
+          }), '*');
         }
       });
     } catch (error) {

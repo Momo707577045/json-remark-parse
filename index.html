@@ -865,9 +865,14 @@ type:[1,2,3],
   window.addEventListener('message', (event) => {
     console.log('receiveMessage', event);
     try {
-      JSON.parse(event.data)
-      window.vueInstance.$data.sourceStr = event.data;
-      window.vueInstance.$data.onlyRead = true;
+      const { action, content, } = JSON.parse(event.data)
+      if (action === 'setSourceStr') {
+        JSON.parse(content)
+        window.vueInstance.$data.sourceStr = content;
+        window.vueInstance.$data.onlyRead = true;
+      } else if (action === 'setTitle') {
+        document.title = content;
+      }
     } catch (error) {
       console.log(error);
     }
