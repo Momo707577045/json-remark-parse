@@ -549,7 +549,11 @@ type:[1,2,3],
     watch: {
       sourceStr: function (newValue) {
         localStorage.setItem('sourceStr', newValue)
-        this.getParseJson(newValue, true)
+        try {
+          this.getParseJson(JSON.parse(newValue), true)
+        } catch (error) {
+          this.getParseJson(newValue, true)
+        }
       },
       schemaJSON: function () {
         this.getParseJson(this.sourceStr, true)
@@ -863,6 +867,7 @@ type:[1,2,3],
     try {
       JSON.parse(event.data)
       window.vueInstance.$data.sourceStr = event.data;
+      window.vueInstance.$data.onlyRead = true;
     } catch (error) {
       console.log(error);
     }
