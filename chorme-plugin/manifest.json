@@ -1,0 +1,19 @@
+{
+  "name": "JSON-REMARK-PARSE",
+  "version": "1.2",
+  "description": "Select text and see it in the console.",
+  "manifest_version": 2,
+  
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}
