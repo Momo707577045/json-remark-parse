@@ -871,6 +871,8 @@ type:[1,2,3],
         window.vueInstance.$data.onlyRead = true;
       } else if (action === 'setTitle') {
         document.title = content;
+      } else if (action === 'setOnlyRead') {
+        window.vueInstance.$data.onlyRead = content === 'true';
       }
     } catch (error) {
       console.log(error);
