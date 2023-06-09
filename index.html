@@ -332,6 +332,8 @@
         <i class="btn" :class="{active:withoutRemark}" @click="withoutRemark=!withoutRemark">去备注</i>
         <i class="btn" :class="{active:showPath}" @click="showPath=!showPath">显示路径</i>
         <i class="btn" @click="copy(resultStrLine.join('\n'))">复制</i>
+        <i class="btn" @click="compressCopy(resultStrLine.join('\n'), true)">压缩复制</i>
+        <i class="btn" @click="stringifyCopy(resultStrLine.join('\n'))">串行化复制</i>
       </div>
     </section>
   </section>
@@ -835,6 +837,18 @@ type:[1,2,3],
             }
           }
         })
+      },
+
+      stringifyCopy(targetStr) {
+        const _originStr = eval(`(function(){ return (${targetStr})})()`) // 去除了备注后的对象
+        let jsonStr = JSON.stringify(_originStr)
+        this.copy(JSON.stringify(jsonStr))
+      },
+
+      compressCopy(targetStr) {
+        const _originStr = eval(`(function(){ return (${targetStr})})()`) // 去除了备注后的对象
+        let jsonStr = JSON.stringify(_originStr)
+        this.copy(jsonStr)
       },
 
       // 拷贝结果
