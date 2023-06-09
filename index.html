@@ -346,7 +346,6 @@
   })();
 </script>
 <!--vue 前端框架-->
-<script src="./beautify.js"></script>
 <script src="https://upyun.luckly-mjw.cn/lib/vue.js"></script>
 <script>
   document.getElementById('loading') && document.getElementById('loading').remove()
@@ -634,7 +633,6 @@ type:[1,2,3],
 
         try {
           const _originStr = eval(`(function(){ return (${originStr})})()`) // 去除了备注后的对象
-          // let jsonStr = js_beautify(originStr, { indent_size: this.indent ? 2 : 4 }) // 为了解决 JSON.stringify 后，数组被强制换行，及单独一行的备注，信息丢失问题，使用了 js_beautify 库
           let jsonStr = JSON.stringify(_originStr, null, this.indent ? 2 : 4)
           let remarkObj = {} // 备注信息
           let originStrLine = originStr.split('\n') // 初始数据的每一行
