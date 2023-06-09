@@ -3,11 +3,11 @@
 // @author       Momo707577045
 // @version      0.10.1
 // @include        *
-// @grant        none
+// @grant        unsafeWindow
 // @namespace    https://github.com/Momo707577045/JSON-Remark-Parse
 // @description  https://github.com/Momo707577045/JSON-Remark-Parse 配套插件
-// @downloadURL	 https://github.com/Momo707577045/JSON-Remark-Parse/json-parse.user.js
-// @updateURL	   https://github.com/Momo707577045/JSON-Remark-Parse/json-parse.user.js
+// @downloadURL	 https://github.com/Momo707577045/json-remark-parse/raw/master/json-parse.user.js
+// @updateURL	   https://github.com/Momo707577045/json-remark-parse/raw/master/json-parse.user.js
 // @run-at document-start
 // ==/UserScript==
 
