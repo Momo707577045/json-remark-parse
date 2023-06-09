@@ -323,6 +323,7 @@
           显示深度: <i v-for="deepIndex in maxDeepNum" class="btn" :class="{active: deepNum === deepIndex}" @click="setDeep(deepIndex)">{{deepIndex}}</i>
         </div>
         <i class="btn" :class="{active:onlyRead}" @click="onlyRead=!onlyRead">只读</i>
+        <i class="btn" @click="parseSource">格式化数据源</i>
         <!-- <i class="withJSDoc" :class="{active:withJSDoc}" @click="withJSDoc=!withJSDoc">JSDoc</i> -->
         <i class="btn" :class="{active:indent}" @click="indent=!indent">2缩进</i>
         <i class="btn" :class="{active:namingType !== 'none'}" @click="changeNaming">{{ namingType ===
@@ -839,6 +840,11 @@ type:[1,2,3],
         })
       },
 
+      parseSource() {
+        const _originStr = eval(`(function(){ return (${this.resultStrLine.join('\n')})})()`) // 去除了备注后的对象
+        this.sourceStr = JSON.stringify(_originStr, null, this.indent ? 2 : 4)
+      },
+
       stringifyCopy(targetStr) {
         const _originStr = eval(`(function(){ return (${targetStr})})()`) // 去除了备注后的对象
         let jsonStr = JSON.stringify(_originStr)
@@ -881,6 +887,10 @@ type:[1,2,3],
       if (action === 'setSourceStr') {
         window.vueInstance.$data.sourceStr = content;
         window.vueInstance.$data.onlyRead = true;
+        // 自动将数据源进行格式化
+        setTimeout(() => {
+          window.vueInstance.parseSource();
+        }, 100)
       } else if (action === 'setTitle') {
         document.title = content;
       } else if (action === 'setOnlyRead') {
