@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         json-parse
 // @author       Momo707577045
-// @version      0.10.1
+// @version      0.10.2
 // @include      *
 // @grant        none
 // @namespace    https://github.com/Momo707577045/JSON-Remark-Parse
@@ -52,18 +52,26 @@
       icon.style.display = "none";
     })
 
+    let hideTimer = ''
+
     // 监听文本选择事件
     document.addEventListener("mouseup", function (event) {
-      const selection = window.getSelection().toString().trim();
-      if (selection.length > 0) {
-        console.log('selection', selection)
-        icon.dataset.content = selection;
-        icon.style.display = "block";
-        icon.style.left = event.clientX - 50 + "px";
-        icon.style.top = event.clientY + "px";
-      } else {
-        icon.style.display = "none";
-      }
+      setTimeout(() => {
+        const selection = window.getSelection().toString().trim();
+        if (selection.length > 0) {
+          console.log('selection', selection)
+          clearTimeout(hideTimer)
+          icon.dataset.content = selection;
+          icon.style.display = "block";
+          icon.style.left = event.clientX - 50 + "px";
+          icon.style.top = event.clientY + "px";
+          hideTimer = setTimeout(() => {
+            icon.style.display = "none";
+          }, 2000)
+        } else {
+          icon.style.display = "none";
+        }
+      }, 10)
     });
   }
   const timer = setInterval(() => {
